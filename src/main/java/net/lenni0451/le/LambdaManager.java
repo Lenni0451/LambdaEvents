@@ -106,12 +106,13 @@ public class LambdaManager {
      *
      * @param lambda The lambda to call with
      */
-    public void call(final Object lambda) {
+    public <T> T call(final T lambda) {
         Objects.requireNonNull(lambda, "Lambda can not be null");
 
         List<Caller> list = this.invoker.get(lambda.getClass());
-        if (list == null) return;
+        if (list == null) return lambda;
         for (Caller caller : list) caller.call(lambda);
+        return lambda;
     }
 
 
