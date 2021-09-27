@@ -57,7 +57,9 @@ public class LambdaManager {
             if (method.getParameterCount() != 1) continue;
             if (lambdaClass != null && !method.getParameterTypes()[0].equals(lambdaClass)) continue;
             try {
-                this.invoker.computeIfAbsent(method.getParameterTypes()[0], c -> new CopyOnWriteArrayList<>()).add(this.generate(isStatic ? null : instanceOrClass, method, handlerInfo));
+                List<Caller> list = this.invoker.computeIfAbsent(method.getParameterTypes()[0], c -> new CopyOnWriteArrayList<>());
+                list.add(this.generate(isStatic ? null : instanceOrClass, method, handlerInfo));
+                list.sort(Caller.COMPARATOR);
             } catch (Throwable e) {
                 throw new IllegalStateException("Unable to create Consumer for method '" + method.getName() + "' in class '" + method.getDeclaringClass().getName() + "'", e);
             }

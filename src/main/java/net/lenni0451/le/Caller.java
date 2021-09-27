@@ -1,9 +1,12 @@
 package net.lenni0451.le;
 
+import java.util.Comparator;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class Caller {
+
+    public static final Comparator<Caller> COMPARATOR = (o1, o2) -> Integer.compare(o2.getHandlerInfo().priority(), o1.getHandlerInfo().priority());
 
     private final Class<?> ownerClass;
     private final Object instance;
