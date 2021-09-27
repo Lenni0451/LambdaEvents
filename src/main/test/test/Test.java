@@ -11,9 +11,15 @@ public class Test {
         LambdaManager.global().call(1337);
     }
 
+    @LambdaHandler(priority = 1)
+    public static void test1(final String s) {
+        System.out.println("String1: " + s);
+        throw LambdaManager.STOP;
+    }
+
     @LambdaHandler
-    public static void test(final String s) {
-        System.out.println("String: " + s);
+    public static void test2(final String s) {
+        System.out.println("String2: " + s);
     }
 
     @LambdaHandler

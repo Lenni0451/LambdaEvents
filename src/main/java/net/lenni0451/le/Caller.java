@@ -4,7 +4,7 @@ import java.util.Comparator;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public class Caller {
+class Caller {
 
     public static final Comparator<Caller> COMPARATOR = (o1, o2) -> Integer.compare(o2.getHandlerInfo().priority(), o1.getHandlerInfo().priority());
 
@@ -14,7 +14,7 @@ public class Caller {
     private final BiConsumer virtualConsumer;
     private final Consumer staticConsumer;
 
-    public Caller(final Class<?> ownerClass, final Object instance, final LambdaHandler handlerInfo, final BiConsumer virtualConsumer) {
+    protected Caller(final Class<?> ownerClass, final Object instance, final LambdaHandler handlerInfo, final BiConsumer virtualConsumer) {
         this.ownerClass = ownerClass;
         this.instance = instance;
         this.handlerInfo = handlerInfo;
@@ -22,7 +22,7 @@ public class Caller {
         this.staticConsumer = null;
     }
 
-    public Caller(final Class<?> ownerClass, final LambdaHandler handlerInfo, final Consumer staticConsumer) {
+    protected Caller(final Class<?> ownerClass, final LambdaHandler handlerInfo, final Consumer staticConsumer) {
         this.ownerClass = ownerClass;
         this.instance = null;
         this.handlerInfo = handlerInfo;

@@ -17,18 +17,24 @@ import java.util.function.Consumer;
 
 public class LambdaManager {
 
+    public static final StopCall STOP = new StopCall();
     private static LambdaManager GLOBAL;
 
     /**
      * Get the global instance of the {@link LambdaManager}
      */
     public static LambdaManager global() {
-        if (GLOBAL == null) GLOBAL = new LambdaManager();
+        if (GLOBAL == null) GLOBAL = new LambdaManager(Throwable::printStackTrace);
         return GLOBAL;
     }
 
 
+    private final Consumer<Throwable> exceptionHandler;
     private final Map<Class<?>, List<Caller>> invoker = new ConcurrentHashMap<>();
+
+    public LambdaManager(final Consumer<Throwable> exceptionHandler) {
+        this.exceptionHandler = exceptionHandler;
+    }
 
     /**
      * Register all lambda listener in a class
@@ -111,7 +117,12 @@ public class LambdaManager {
 
         List<Caller> list = this.invoker.get(lambda.getClass());
         if (list == null) return lambda;
-        for (Caller caller : list) caller.call(lambda);
+        try {
+            for (Caller caller : list) caller.call(lambda);
+        } catch (StopCall ignored) {
+        } catch (Throwable t) {
+            this.exceptionHandler.accept(t);
+        }
         return lambda;
     }
 
