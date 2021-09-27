@@ -86,13 +86,13 @@ public class CallSpeedTest {
         }
         out.println();
 
-//        out.println("---------- UnRegister Event Listener ----------");
-//        long unregisterTime;
-//        {
-//            unregisterTime = System.nanoTime();
-//            EventManager.unregister(listener);
-//            out.println("EventManager: " + df.format(System.nanoTime() - unregisterTime));
-//        }
+        out.println("---------- UnRegister Event Listener ----------");
+        long unregisterTime;
+        {
+            unregisterTime = System.nanoTime();
+            LambdaManager.global().unregister(listener);
+            out.println("EventManager: " + df.format(System.nanoTime() - unregisterTime));
+        }
         out.println();
     }
 
@@ -105,12 +105,12 @@ public class CallSpeedTest {
     public static class EventListener {
 
         @LambdaHandler
-        public static void onEvent(ExampleEvent1 event) {
+        public void onEvent(ExampleEvent1 event) {
             CallSpeedTest.testCodeHere(event);
         }
 
         @LambdaHandler
-        public static void onEvent(ExampleEvent2 event) {
+        public void onEvent(ExampleEvent2 event) {
             CallSpeedTest.testCodeHere(event);
         }
 
