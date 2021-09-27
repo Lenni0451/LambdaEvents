@@ -1,6 +1,9 @@
 package net.lenni0451.le;
 
-import java.lang.invoke.*;
+import java.lang.invoke.CallSite;
+import java.lang.invoke.LambdaMetafactory;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
@@ -8,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class LambdaManager {
@@ -20,7 +24,7 @@ public class LambdaManager {
     }
 
 
-    private final Map<Class<?>, List<Triple<Object, LambdaHandler, Consumer<Object>>>> invoker = new ConcurrentHashMap<>();
+    private final Map<Class<?>, List<Caller>> invoker = new ConcurrentHashMap<>();
 
     public void register(final Object instanceOrClass) {
         Objects.requireNonNull(instanceOrClass, "Instance or class can not be null");
@@ -41,31 +45,37 @@ public class LambdaManager {
     }
 
     public void call(final Object lambda) {
-        List<Triple<Object, LambdaHandler, Consumer<Object>>> list = this.invoker.get(lambda.getClass());
+        List<Caller> list = this.invoker.get(lambda.getClass());
         if (list == null) return;
-        for (Triple<Object, LambdaHandler, Consumer<Object>> consumer : list) consumer.getC().accept(lambda);
+        for (Caller caller : list) caller.call(lambda);
     }
 
 
-    private Triple<Object, LambdaHandler, Consumer<Object>> generate(final Object instance, final Method method, final LambdaHandler handlerInfo) throws Throwable {
+    private Caller generate(final Object instance, final Method method, final LambdaHandler handlerInfo) throws Throwable {
         final boolean isStatic = instance == null;
-        final MethodHandle invokedMethodHandle;
         if (isStatic) {
-            invokedMethodHandle = MethodHandles.lookup().findStatic(method.getDeclaringClass(), method.getName(), MethodType.methodType(void.class, method.getParameterTypes()[0]));
+            CallSite callSite = LambdaMetafactory.metafactory(
+                    MethodHandles.lookup(),
+                    "accept",
+                    MethodType.methodType(Consumer.class),
+                    MethodType.methodType(void.class, Object.class),
+                    MethodHandles.lookup().findStatic(method.getDeclaringClass(), method.getName(), MethodType.methodType(void.class, method.getParameterTypes()[0])),
+                    MethodType.methodType(void.class, method.getParameterTypes()[0])
+            );
+            Consumer consumer = (Consumer) callSite.getTarget().invokeExact();
+            return new Caller(handlerInfo, consumer);
         } else {
-            invokedMethodHandle = MethodHandles.lookup().findVirtual(method.getDeclaringClass(), method.getName(), MethodType.methodType(void.class, method.getParameterTypes()[0]));
+            CallSite callSite = LambdaMetafactory.metafactory(
+                    MethodHandles.lookup(),
+                    "accept",
+                    MethodType.methodType(BiConsumer.class),
+                    MethodType.methodType(void.class, Object.class, Object.class),
+                    MethodHandles.lookup().findVirtual(method.getDeclaringClass(), method.getName(), MethodType.methodType(void.class, method.getParameterTypes()[0])),
+                    MethodType.methodType(void.class, instance.getClass(), method.getParameterTypes()[0])
+            );
+            BiConsumer consumer = (BiConsumer) callSite.getTarget().invokeExact();
+            return new Caller(instance, handlerInfo, consumer);
         }
-        CallSite callSite = LambdaMetafactory.metafactory(
-                MethodHandles.lookup(),
-                "accept",
-                MethodType.methodType(Consumer.class),
-                MethodType.methodType(void.class, Object.class),
-                invokedMethodHandle,
-                MethodType.methodType(void.class, method.getParameterTypes()[0])
-        );
-        Consumer<Object> consumer;
-        consumer = (Consumer<Object>) callSite.getTarget().invokeExact();
-        return new Triple<>(isStatic ? null : instance, handlerInfo, consumer);
     }
 
 }
