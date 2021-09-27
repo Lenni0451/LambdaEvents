@@ -24,17 +24,13 @@ public class LambdaManager {
      * Get the global instance of the {@link LambdaManager}
      */
     public static LambdaManager global() {
-        if (GLOBAL == null) GLOBAL = new LambdaManager(Throwable::printStackTrace);
+        if (GLOBAL == null) GLOBAL = new LambdaManager();
         return GLOBAL;
     }
 
 
-    private final Consumer<Throwable> exceptionHandler;
     private final Map<Class<?>, List<Caller>> invoker = new ConcurrentHashMap<>();
-
-    public LambdaManager(final Consumer<Throwable> exceptionHandler) {
-        this.exceptionHandler = exceptionHandler;
-    }
+    private Consumer<Throwable> exceptionHandler = Throwable::printStackTrace;
 
     /**
      * Register all lambda listener in a class
@@ -124,6 +120,13 @@ public class LambdaManager {
             this.exceptionHandler.accept(t);
         }
         return lambda;
+    }
+
+    /**
+     * Set the event call exception handler
+     */
+    public void setExceptionHandler(final Consumer<Throwable> exceptionHandler) {
+        this.exceptionHandler = exceptionHandler;
     }
 
 
