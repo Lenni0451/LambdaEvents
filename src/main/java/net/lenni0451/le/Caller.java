@@ -55,7 +55,7 @@ class Caller {
     }
 
     public void call(final Object event) {
-        if (this.isStatic) this.staticConsumer.accept(event);
+        if (this.staticConsumer != null) this.staticConsumer.accept(event);
         else this.virtualConsumer.accept(this.instance, event);
     }
 
