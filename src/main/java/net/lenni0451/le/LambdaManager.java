@@ -71,7 +71,7 @@ public class LambdaManager {
     }
 
     /**
-     * Register a {@link Consumer} directly as a event handler<br>
+     * Register a {@link Consumer} directly as an event handler<br>
      * Inline event handling is possible with this
      *
      * @param eventClass The class of the event to register
