@@ -8,11 +8,21 @@ class Caller {
 
     public static final Comparator<Caller> COMPARATOR = (o1, o2) -> Integer.compare(o2.getHandlerInfo().priority(), o1.getHandlerInfo().priority());
 
+    /**
+     * For internal use only!<br>
+     * Needed for {@link Consumer} field handler in classes
+     */
+    public static void _setStatic(final Caller caller, final boolean newStaticState) {
+        caller.isStatic = newStaticState;
+    }
+
+
     private final Class<?> ownerClass;
     private final Object instance;
     private final EventHandler handlerInfo;
     private final BiConsumer virtualConsumer;
     private final Consumer staticConsumer;
+    private boolean isStatic;
 
     protected Caller(final Class<?> ownerClass, final Object instance, final EventHandler handlerInfo, final BiConsumer virtualConsumer) {
         this.ownerClass = ownerClass;
@@ -20,6 +30,7 @@ class Caller {
         this.handlerInfo = handlerInfo;
         this.virtualConsumer = virtualConsumer;
         this.staticConsumer = null;
+        this.isStatic = false;
     }
 
     protected Caller(final Class<?> ownerClass, final EventHandler handlerInfo, final Consumer staticConsumer) {
@@ -28,6 +39,7 @@ class Caller {
         this.handlerInfo = handlerInfo;
         this.virtualConsumer = null;
         this.staticConsumer = staticConsumer;
+        this.isStatic = true;
     }
 
     public Class<?> getOwnerClass() {
@@ -35,7 +47,7 @@ class Caller {
     }
 
     public boolean isStatic() {
-        return this.staticConsumer != null;
+        return this.isStatic;
     }
 
     public EventHandler getHandlerInfo() {
@@ -43,8 +55,8 @@ class Caller {
     }
 
     public void call(final Object event) {
-        if (this.virtualConsumer != null) this.virtualConsumer.accept(this.instance, event);
-        else this.staticConsumer.accept(event);
+        if (this.isStatic) this.staticConsumer.accept(event);
+        else this.virtualConsumer.accept(this.instance, event);
     }
 
 }

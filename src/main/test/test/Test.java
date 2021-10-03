@@ -16,6 +16,9 @@ public class Test {
         System.out.println();
         LambdaManager.g().unregister(String.class, consumer);
         LambdaManager.g().call("1337");
+        System.out.println();
+        LambdaManager.g().unregister(Test.class);
+        LambdaManager.g().call(1337);
     }
 
     @EventHandler(priority = 1)
@@ -33,5 +36,8 @@ public class Test {
     public static void test(final Integer i) {
         System.out.println("Integer: " + i);
     }
+
+    @EventHandler(priority = 120, eventClass = Integer.class)
+    public static Consumer<Integer> gay = i -> System.out.println("Int Consumer: " + i);
 
 }

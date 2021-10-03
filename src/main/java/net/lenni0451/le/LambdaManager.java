@@ -5,6 +5,7 @@ import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ public class LambdaManager {
      * Register all event listener in a class
      *
      * @param instanceOrClass Instance if virtual events/Class if static events
+     * @throws IllegalStateException If there is something wrong with your listener
      */
     public void register(final Object instanceOrClass) {
         this.register(null, instanceOrClass);
@@ -48,6 +50,7 @@ public class LambdaManager {
      *
      * @param eventClass      The class of the event to register
      * @param instanceOrClass Instance if virtual events/Class if static events
+     * @throws IllegalStateException If there is something wrong with your listener
      */
     public void register(final Class<?> eventClass, final Object instanceOrClass) {
         Objects.requireNonNull(instanceOrClass, "Instance or class can not be null");
@@ -66,6 +69,26 @@ public class LambdaManager {
                 list.sort(Caller.COMPARATOR);
             } catch (Throwable e) {
                 throw new IllegalStateException("Unable to create Consumer for method '" + method.getName() + "' in class '" + method.getDeclaringClass().getName() + "'", e);
+            }
+        }
+        for (Field field : clazz.getDeclaredFields()) {
+            EventHandler handlerInfo = field.getDeclaredAnnotation(EventHandler.class);
+            if (!field.getType().equals(Consumer.class)) continue;
+            if (handlerInfo == null) continue;
+            if (handlerInfo.eventClass().equals(void.class)) {
+                throw new IllegalStateException("Consumer '" + field.getName() + "' in class '" + field.getDeclaringClass().getName() + "' does not have an event type set");
+            }
+            if (isStatic != Modifier.isStatic(field.getModifiers())) continue;
+            if (eventClass != null && !handlerInfo.eventClass().equals(eventClass)) continue;
+            try {
+                Consumer consumer = (Consumer) field.get(isStatic ? null : instanceOrClass);
+                List<Caller> list = this.invoker.computeIfAbsent(handlerInfo.eventClass(), c -> new CopyOnWriteArrayList<>());
+                Caller caller = new Caller(field.getDeclaringClass(), handlerInfo, consumer);
+                Caller._setStatic(caller, isStatic);
+                list.add(caller);
+                list.sort(Caller.COMPARATOR);
+            } catch (Throwable t) {
+                throw new IllegalStateException("Unable to get Consumer '" + field.getName() + "' in class '" + field.getDeclaringClass().getName() + "'");
             }
         }
     }
@@ -92,6 +115,11 @@ public class LambdaManager {
             @Override
             public byte priority() {
                 return priority;
+            }
+
+            @Override
+            public Class<?> eventClass() {
+                return void.class;
             }
         }, consumer);
         List<Caller> list = this.invoker.computeIfAbsent(eventClass, c -> new CopyOnWriteArrayList<>());
