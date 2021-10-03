@@ -138,12 +138,12 @@ public class LambdaManager {
     /**
      * Unregister a {@link Consumer} directly
      *
-     * @param consumer The {@link Consumer} to unregister
+     * @param eventClass The class of the event to unregister
+     * @param consumer   The {@link Consumer} to unregister
+     * @param <T>        The event type
      */
-    public void unregister(final Consumer<?> consumer) {
-        for (Map.Entry<Class<?>, List<Caller>> entry : this.invoker.entrySet()) {
-            entry.getValue().removeIf(caller -> caller.getOwnerClass().equals(consumer.getClass()));
-        }
+    public <T> void unregister(final Class<T> eventClass, final Consumer<?> consumer) {
+        this.invoker.get(eventClass).removeIf(caller -> caller.getOwnerClass().equals(consumer.getClass()));
     }
 
 

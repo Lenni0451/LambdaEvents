@@ -14,7 +14,7 @@ public class Test {
         LambdaManager.g().call("1337");
         LambdaManager.g().call(1337);
         System.out.println();
-        LambdaManager.g().unregister(consumer);
+        LambdaManager.g().unregister(String.class, consumer);
         LambdaManager.g().call("1337");
     }
 
