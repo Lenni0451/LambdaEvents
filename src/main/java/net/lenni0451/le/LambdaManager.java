@@ -1,5 +1,6 @@
 package net.lenni0451.le;
 
+import java.lang.annotation.Annotation;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
@@ -70,6 +71,36 @@ public class LambdaManager {
     }
 
     /**
+     * Register a {@link Consumer} directly as a event handler<br>
+     * Inline event handling is possible with this
+     *
+     * @param eventClass The class of the event to register
+     * @param consumer   The {@link Consumer} you want to register
+     * @param priority   The priority of the handler
+     * @param <T>        The event type
+     */
+    public <T> void register(final Class<T> eventClass, final Consumer<T> consumer, final byte priority) {
+        Objects.requireNonNull(eventClass, "Event class can not be null");
+        Objects.requireNonNull(consumer, "Consumer can not be null");
+
+        Caller directCaller = new Caller(consumer.getClass(), new EventHandler() {
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return EventHandler.class;
+            }
+
+            @Override
+            public byte priority() {
+                return priority;
+            }
+        }, consumer);
+        List<Caller> list = this.invoker.computeIfAbsent(eventClass, c -> new CopyOnWriteArrayList<>());
+        list.add(directCaller);
+        list.sort(Caller.COMPARATOR);
+    }
+
+
+    /**
      * Unregister all event listener in a class
      *
      * @param instanceOrClass Instance if virtual events/Class if static events
@@ -103,6 +134,18 @@ public class LambdaManager {
         }
         for (Class<?> clazzToRemove : toRemove) this.invoker.remove(clazzToRemove);
     }
+
+    /**
+     * Unregister a {@link Consumer} directly
+     *
+     * @param consumer The {@link Consumer} to unregister
+     */
+    public void unregister(final Consumer<?> consumer) {
+        for (Map.Entry<Class<?>, List<Caller>> entry : this.invoker.entrySet()) {
+            entry.getValue().removeIf(caller -> caller.getOwnerClass().equals(consumer.getClass()));
+        }
+    }
+
 
     /**
      * Call all event listener

@@ -3,14 +3,19 @@ package test;
 import net.lenni0451.le.EventHandler;
 import net.lenni0451.le.LambdaManager;
 
+import java.util.function.Consumer;
+
 public class Test {
 
     public static void main(String[] args) {
-        System.out.println(LambdaManager.STOP);
-
         LambdaManager.g().register(Test.class);
+        Consumer<String> consumer = s -> System.out.println("Inline: " + s);
+        LambdaManager.g().register(String.class, consumer, (byte) 2);
         LambdaManager.g().call("1337");
         LambdaManager.g().call(1337);
+        System.out.println();
+        LambdaManager.g().unregister(consumer);
+        LambdaManager.g().call("1337");
     }
 
     @EventHandler(priority = 1)
