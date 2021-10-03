@@ -104,6 +104,11 @@ public class CallSpeedTest {
 
     public static class EventListener {
 
+//        @EventHandler(eventClass = ExampleEvent1.class)
+//        public final Consumer<ExampleEvent1> exampleEvent1Consumer = CallSpeedTest::testCodeHere;
+//        @EventHandler(eventClass = ExampleEvent2.class)
+//        public final Consumer<ExampleEvent2> exampleEvent2Consumer = CallSpeedTest::testCodeHere;
+
         @EventHandler
         public void onEvent(ExampleEvent1 event) {
             CallSpeedTest.testCodeHere(event);
