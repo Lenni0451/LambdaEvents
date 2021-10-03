@@ -6,13 +6,13 @@ import java.util.function.Consumer;
 
 class Caller {
 
-    public static final Comparator<Caller> COMPARATOR = (o1, o2) -> Integer.compare(o2.getHandlerInfo().priority(), o1.getHandlerInfo().priority());
+    static final Comparator<Caller> COMPARATOR = (o1, o2) -> Integer.compare(o2.getHandlerInfo().priority(), o1.getHandlerInfo().priority());
 
     /**
      * For internal use only!<br>
      * Needed for {@link Consumer} field handler in classes
      */
-    public static void _setStatic(final Caller caller, final boolean newStaticState) {
+    static void _setStatic(final Caller caller, final boolean newStaticState) {
         caller.isStatic = newStaticState;
     }
 
@@ -42,19 +42,19 @@ class Caller {
         this.isStatic = true;
     }
 
-    public Class<?> getOwnerClass() {
+    Class<?> getOwnerClass() {
         return this.ownerClass;
     }
 
-    public boolean isStatic() {
+    boolean isStatic() {
         return this.isStatic;
     }
 
-    public EventHandler getHandlerInfo() {
+    EventHandler getHandlerInfo() {
         return this.handlerInfo;
     }
 
-    public void call(final Object event) {
+    void call(final Object event) {
         if (this.staticConsumer != null) this.staticConsumer.accept(event);
         else this.virtualConsumer.accept(this.instance, event);
     }
