@@ -21,9 +21,10 @@ public class LambdaManager {
     private static LambdaManager GLOBAL;
 
     /**
-     * Get the global instance of the {@link LambdaManager}
+     * Get the global instance of the {@link LambdaManager}<br>
+     * This method has a short name to prevent call lines getting too long
      */
-    public static LambdaManager global() {
+    public static LambdaManager g() {
         if (GLOBAL == null) GLOBAL = new LambdaManager();
         return GLOBAL;
     }
@@ -33,7 +34,7 @@ public class LambdaManager {
     private Consumer<Throwable> exceptionHandler = Throwable::printStackTrace;
 
     /**
-     * Register all lambda listener in a class
+     * Register all event listener in a class
      *
      * @param instanceOrClass Instance if virtual events/Class if static events
      */
@@ -42,22 +43,22 @@ public class LambdaManager {
     }
 
     /**
-     * Register all lambda listener in a class
+     * Register all event listener in a class
      *
-     * @param lambdaClass     The class of the event to register
+     * @param eventClass      The class of the event to register
      * @param instanceOrClass Instance if virtual events/Class if static events
      */
-    public void register(final Class<?> lambdaClass, final Object instanceOrClass) {
+    public void register(final Class<?> eventClass, final Object instanceOrClass) {
         Objects.requireNonNull(instanceOrClass, "Instance or class can not be null");
 
         final boolean isStatic = instanceOrClass instanceof Class<?>;
         final Class<?> clazz = isStatic ? (Class<?>) instanceOrClass : instanceOrClass.getClass();
         for (Method method : clazz.getDeclaredMethods()) {
-            LambdaHandler handlerInfo = method.getDeclaredAnnotation(LambdaHandler.class);
+            EventHandler handlerInfo = method.getDeclaredAnnotation(EventHandler.class);
             if (handlerInfo == null) continue;
             if (isStatic != Modifier.isStatic(method.getModifiers())) continue;
             if (method.getParameterCount() != 1) continue;
-            if (lambdaClass != null && !method.getParameterTypes()[0].equals(lambdaClass)) continue;
+            if (eventClass != null && !method.getParameterTypes()[0].equals(eventClass)) continue;
             try {
                 List<Caller> list = this.invoker.computeIfAbsent(method.getParameterTypes()[0], c -> new CopyOnWriteArrayList<>());
                 list.add(this.generate(isStatic ? null : instanceOrClass, method, handlerInfo));
@@ -69,7 +70,7 @@ public class LambdaManager {
     }
 
     /**
-     * Unregister all lambda listener in a class
+     * Unregister all event listener in a class
      *
      * @param instanceOrClass Instance if virtual events/Class if static events
      */
@@ -78,18 +79,18 @@ public class LambdaManager {
     }
 
     /**
-     * Unregister all lambda listener in a class
+     * Unregister all event listener in a class
      *
-     * @param lambdaClass     The class of the event to register
+     * @param eventClass      The class of the event to register
      * @param instanceOrClass Instance if virtual events/Class if static events
      */
-    public void unregister(final Class<?> lambdaClass, final Object instanceOrClass) {
+    public void unregister(final Class<?> eventClass, final Object instanceOrClass) {
         Objects.requireNonNull(instanceOrClass, "Instance or class can not be null");
 
         final boolean isStatic = instanceOrClass instanceof Class<?>;
         final Class<?> clazz = isStatic ? (Class<?>) instanceOrClass : instanceOrClass.getClass();
         List<Class<?>> toRemove = new ArrayList<>();
-        if (lambdaClass == null) {
+        if (eventClass == null) {
             for (Map.Entry<Class<?>, List<Caller>> entry : this.invoker.entrySet()) {
                 List<Caller> list = entry.getValue();
                 list.removeIf(caller -> caller.isStatic() == isStatic && caller.getOwnerClass().equals(clazz));
@@ -104,22 +105,22 @@ public class LambdaManager {
     }
 
     /**
-     * Call all lambda listener
+     * Call all event listener
      *
-     * @param lambda The lambda to call with
+     * @param event The event to call with
      */
-    public <T> T call(final T lambda) {
-        Objects.requireNonNull(lambda, "Lambda can not be null");
+    public <T> T call(final T event) {
+        Objects.requireNonNull(event, "Event can not be null");
 
-        List<Caller> list = this.invoker.get(lambda.getClass());
-        if (list == null) return lambda;
+        List<Caller> list = this.invoker.get(event.getClass());
+        if (list == null) return event;
         try {
-            for (Caller caller : list) caller.call(lambda);
+            for (Caller caller : list) caller.call(event);
         } catch (StopCall ignored) {
         } catch (Throwable t) {
             this.exceptionHandler.accept(t);
         }
-        return lambda;
+        return event;
     }
 
     /**
@@ -135,11 +136,11 @@ public class LambdaManager {
      *
      * @param instance    The instance of the method owner
      * @param method      The method to call
-     * @param handlerInfo The {@link LambdaHandler} annotation of the method
+     * @param handlerInfo The {@link EventHandler} annotation of the method
      * @return The new Caller instance for virtual and static calls
      * @throws Throwable Because {@link java.lang.invoke.MethodHandle#invokeExact(Object...)} can throw a throwable
      */
-    private Caller generate(final Object instance, final Method method, final LambdaHandler handlerInfo) throws Throwable {
+    private Caller generate(final Object instance, final Method method, final EventHandler handlerInfo) throws Throwable {
         final boolean isStatic = instance == null;
         if (isStatic) {
             CallSite callSite = LambdaMetafactory.metafactory(

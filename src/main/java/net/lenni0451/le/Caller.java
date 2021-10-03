@@ -10,11 +10,11 @@ class Caller {
 
     private final Class<?> ownerClass;
     private final Object instance;
-    private final LambdaHandler handlerInfo;
+    private final EventHandler handlerInfo;
     private final BiConsumer virtualConsumer;
     private final Consumer staticConsumer;
 
-    protected Caller(final Class<?> ownerClass, final Object instance, final LambdaHandler handlerInfo, final BiConsumer virtualConsumer) {
+    protected Caller(final Class<?> ownerClass, final Object instance, final EventHandler handlerInfo, final BiConsumer virtualConsumer) {
         this.ownerClass = ownerClass;
         this.instance = instance;
         this.handlerInfo = handlerInfo;
@@ -22,7 +22,7 @@ class Caller {
         this.staticConsumer = null;
     }
 
-    protected Caller(final Class<?> ownerClass, final LambdaHandler handlerInfo, final Consumer staticConsumer) {
+    protected Caller(final Class<?> ownerClass, final EventHandler handlerInfo, final Consumer staticConsumer) {
         this.ownerClass = ownerClass;
         this.instance = null;
         this.handlerInfo = handlerInfo;
@@ -38,13 +38,13 @@ class Caller {
         return this.staticConsumer != null;
     }
 
-    public LambdaHandler getHandlerInfo() {
+    public EventHandler getHandlerInfo() {
         return this.handlerInfo;
     }
 
-    public void call(final Object lambda) {
-        if (this.virtualConsumer != null) this.virtualConsumer.accept(this.instance, lambda);
-        else this.staticConsumer.accept(lambda);
+    public void call(final Object event) {
+        if (this.virtualConsumer != null) this.virtualConsumer.accept(this.instance, event);
+        else this.staticConsumer.accept(event);
     }
 
 }

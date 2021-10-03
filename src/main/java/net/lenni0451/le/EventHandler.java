@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface LambdaHandler {
+public @interface EventHandler {
 
     byte priority() default 0;
 

@@ -7,7 +7,7 @@ class StopCall extends RuntimeException {
 
     @Override
     public String toString() {
-        return "";
+        return "Throw this to stop the current event pipeline";
     }
 
     @Override

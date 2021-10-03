@@ -1,6 +1,6 @@
 package test;
 
-import net.lenni0451.le.LambdaHandler;
+import net.lenni0451.le.EventHandler;
 import net.lenni0451.le.LambdaManager;
 
 import java.io.ByteArrayOutputStream;
@@ -23,7 +23,7 @@ public class CallSpeedTest {
         long registerTime;
         {
             registerTime = System.nanoTime();
-            LambdaManager.global().register(listener);
+            LambdaManager.g().register(listener);
             out.println("EventManager: " + df.format(System.nanoTime() - registerTime));
         }
         out.println();
@@ -33,11 +33,11 @@ public class CallSpeedTest {
         out.println("---------- Single call ----------");
         {
             start = System.nanoTime();
-            LambdaManager.global().call(new ExampleEvent1());
+            LambdaManager.g().call(new ExampleEvent1());
             out.println("EventManager (ExampleEvent1): " + df.format(System.nanoTime() - start));
 
             start = System.nanoTime();
-            LambdaManager.global().call(new ExampleEvent2());
+            LambdaManager.g().call(new ExampleEvent2());
             out.println("EventManager (ExampleEvent2): " + df.format(System.nanoTime() - start));
         }
         out.println();
@@ -47,7 +47,7 @@ public class CallSpeedTest {
             middle = 0;
             for (int i = 0; i < 1000; i++) {
                 start = System.nanoTime();
-                LambdaManager.global().call(new ExampleEvent1());
+                LambdaManager.g().call(new ExampleEvent1());
                 middle += System.nanoTime() - start;
             }
             middle /= 1000F;
@@ -56,7 +56,7 @@ public class CallSpeedTest {
             middle = 0;
             for (int i = 0; i < 1000; i++) {
                 start = System.nanoTime();
-                LambdaManager.global().call(new ExampleEvent2());
+                LambdaManager.g().call(new ExampleEvent2());
                 middle += System.nanoTime() - start;
             }
             middle /= 1000F;
@@ -69,7 +69,7 @@ public class CallSpeedTest {
             middle = 0;
             for (int i = 0; i < 100000; i++) {
                 start = System.nanoTime();
-                LambdaManager.global().call(new ExampleEvent1());
+                LambdaManager.g().call(new ExampleEvent1());
                 middle += System.nanoTime() - start;
             }
             middle /= 100000F;
@@ -78,7 +78,7 @@ public class CallSpeedTest {
             middle = 0;
             for (int i = 0; i < 100000; i++) {
                 start = System.nanoTime();
-                LambdaManager.global().call(new ExampleEvent2());
+                LambdaManager.g().call(new ExampleEvent2());
                 middle += System.nanoTime() - start;
             }
             middle /= 100000F;
@@ -90,7 +90,7 @@ public class CallSpeedTest {
         long unregisterTime;
         {
             unregisterTime = System.nanoTime();
-            LambdaManager.global().unregister(listener);
+            LambdaManager.g().unregister(listener);
             out.println("EventManager: " + df.format(System.nanoTime() - unregisterTime));
         }
         out.println();
@@ -104,12 +104,12 @@ public class CallSpeedTest {
 
     public static class EventListener {
 
-        @LambdaHandler
+        @EventHandler
         public void onEvent(ExampleEvent1 event) {
             CallSpeedTest.testCodeHere(event);
         }
 
-        @LambdaHandler
+        @EventHandler
         public void onEvent(ExampleEvent2 event) {
             CallSpeedTest.testCodeHere(event);
         }
