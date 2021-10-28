@@ -24,7 +24,7 @@ public class Test {
     @EventHandler(priority = 1)
     public static void test1(final String s) {
         System.out.println("String1: " + s);
-        throw LambdaManager.STOP;
+        LambdaManager.stop();
     }
 
     @EventHandler

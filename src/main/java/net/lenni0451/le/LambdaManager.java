@@ -19,10 +19,6 @@ import java.util.function.Consumer;
 
 public class LambdaManager {
 
-    /**
-     * Throw this exception in an event handler to cancel the current execution pipeline
-     */
-    public static final StopCall STOP = new StopCall();
     private static LambdaManager GLOBAL;
 
     /**
@@ -32,6 +28,13 @@ public class LambdaManager {
     public static LambdaManager g() {
         if (GLOBAL == null) GLOBAL = new LambdaManager();
         return GLOBAL;
+    }
+
+    /**
+     * Call this method in an event handler to stop the current event pipeline from going further
+     */
+    public static void stop() {
+        throw new StopCall();
     }
 
 
