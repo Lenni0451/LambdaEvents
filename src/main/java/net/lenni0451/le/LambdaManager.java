@@ -8,10 +8,7 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
@@ -81,18 +78,20 @@ public class LambdaManager {
             EventHandler handlerInfo = field.getDeclaredAnnotation(EventHandler.class);
             if (!field.getType().equals(Consumer.class)) continue;
             if (handlerInfo == null) continue;
-            if (handlerInfo.eventClass().equals(void.class)) {
-                throw new IllegalStateException("Consumer '" + field.getName() + "' in class '" + field.getDeclaringClass().getName() + "' does not have an event type set");
+            if (handlerInfo.eventClasses().length == 0) {
+                throw new IllegalStateException("Consumer '" + field.getName() + "' in class '" + field.getDeclaringClass().getName() + "' does not have any event types set");
             }
             if (isStatic != Modifier.isStatic(field.getModifiers())) continue;
-            if (eventClass != null && !handlerInfo.eventClass().equals(eventClass)) continue;
+            if (eventClass != null && !Arrays.asList(handlerInfo.eventClasses()).contains(eventClass)) continue;
             try {
                 Consumer consumer = (Consumer) field.get(isStatic ? null : instanceOrClass);
-                List<Caller> list = this.invoker.computeIfAbsent(handlerInfo.eventClass(), c -> new CopyOnWriteArrayList<>());
-                Caller caller = new Caller(field.getDeclaringClass(), handlerInfo, consumer);
-                Caller._setStatic(caller, isStatic);
-                list.add(caller);
-                list.sort(Caller.COMPARATOR);
+                for (Class<?> eventType : handlerInfo.eventClasses()) {
+                    List<Caller> list = this.invoker.computeIfAbsent(eventType, c -> new CopyOnWriteArrayList<>());
+                    Caller caller = new Caller(field.getDeclaringClass(), handlerInfo, consumer);
+                    Caller._setStatic(caller, isStatic);
+                    list.add(caller);
+                    list.sort(Caller.COMPARATOR);
+                }
             } catch (Throwable t) {
                 throw new IllegalStateException("Unable to get Consumer '" + field.getName() + "' in class '" + field.getDeclaringClass().getName() + "'");
             }
@@ -124,8 +123,8 @@ public class LambdaManager {
             }
 
             @Override
-            public Class<?> eventClass() {
-                return void.class;
+            public Class<?>[] eventClasses() {
+                return new Class<?>[0];
             }
         }, consumer);
         List<Caller> list = this.invoker.computeIfAbsent(eventClass, c -> new CopyOnWriteArrayList<>());

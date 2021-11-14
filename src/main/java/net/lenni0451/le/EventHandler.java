@@ -16,6 +16,6 @@ public @interface EventHandler {
      * Not needed for event handler methods<br>
      * Only for {@link Consumer} fields in classes
      */
-    Class<?> eventClass() default void.class;
+    Class<?>[] eventClasses() default {};
 
 }

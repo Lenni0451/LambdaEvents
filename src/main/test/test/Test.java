@@ -8,36 +8,32 @@ import java.util.function.Consumer;
 public class Test {
 
     public static void main(String[] args) {
+        System.out.println("Register");
         LambdaManager.g().register(Test.class);
-        Consumer<String> consumer = s -> System.out.println("Inline: " + s);
-        LambdaManager.g().register(String.class, consumer, (byte) 2);
-        LambdaManager.g().call("1337");
-        LambdaManager.g().call(1337);
+        LambdaManager.g().call(new Integer(1337));
+        LambdaManager.g().call("Test");
         System.out.println();
-        LambdaManager.g().unregister(String.class, consumer);
-        LambdaManager.g().call("1337");
+
+        System.out.println("Unregister Integer");
+        LambdaManager.g().unregister(Integer.class, Test.class);
+        LambdaManager.g().call(new Integer(1337));
+        LambdaManager.g().call("Test");
         System.out.println();
+
+        System.out.println("Unregister");
         LambdaManager.g().unregister(Test.class);
-        LambdaManager.g().call(1337);
+        LambdaManager.g().call(new Integer(1337));
+        LambdaManager.g().call("Test");
+        System.out.println();
     }
 
-    @EventHandler(priority = 1)
-    public static void test1(final String s) {
-        System.out.println("String1: " + s);
-        LambdaManager.stop();
-    }
+    @EventHandler(priority = 120, eventClasses = {Integer.class, String.class})
+    public static Consumer<Object> testBoth = o -> System.out.println("Both Consumer: " + o.getClass().getName() + " " + o);
 
-    @EventHandler
-    public static void test2(final String s) {
-        System.out.println("String2: " + s);
-    }
+    @EventHandler(priority = 120, eventClasses = Integer.class)
+    public static Consumer<Object> testInteger = o -> System.out.println("Integer Consumer: " + o.getClass().getName() + " " + o);
 
-    @EventHandler
-    public static void test(final Integer i) {
-        System.out.println("Integer: " + i);
-    }
-
-    @EventHandler(priority = 120, eventClass = Integer.class)
-    public static Consumer<Integer> gay = i -> System.out.println("Int Consumer: " + i);
+    @EventHandler(priority = 120, eventClasses = String.class)
+    public static Consumer<Object> testString = o -> System.out.println("String Consumer: " + o.getClass().getName() + " " + o);
 
 }
