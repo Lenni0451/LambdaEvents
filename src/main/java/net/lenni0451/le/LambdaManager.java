@@ -225,28 +225,47 @@ public class LambdaManager {
      */
     private Caller generate(final Object instance, final Method method, final EventHandler handlerInfo) throws Throwable {
         final boolean isStatic = instance == null;
+        Map<String, Caller> eventCache = null;
+        try {
+            Field f = method.getDeclaringClass().getField("_LAMBDA_CACHE");
+            f.setAccessible(true);
+            eventCache = (Map<String, Caller>) f.get(null);
+        } catch (Throwable ignored) {
+        }
         if (isStatic) {
-            CallSite callSite = LambdaMetafactory.metafactory(
-                    MethodHandles.lookup(),
-                    "accept",
-                    MethodType.methodType(Consumer.class),
-                    MethodType.methodType(void.class, Object.class),
-                    MethodHandles.lookup().findStatic(method.getDeclaringClass(), method.getName(), MethodType.methodType(void.class, method.getParameterTypes()[0])),
-                    MethodType.methodType(void.class, method.getParameterTypes()[0])
-            );
-            Consumer consumer = (Consumer) callSite.getTarget().invokeExact();
-            return new Caller(method.getDeclaringClass(), handlerInfo, consumer);
+            String cacheKey = "static " + method.getDeclaringClass().getName() + " " + method;
+            if (eventCache != null && eventCache.containsKey(cacheKey)) {
+                return eventCache.get(cacheKey);
+            } else {
+                CallSite callSite = LambdaMetafactory.metafactory(
+                        MethodHandles.lookup(),
+                        "accept",
+                        MethodType.methodType(Consumer.class),
+                        MethodType.methodType(void.class, Object.class),
+                        MethodHandles.lookup().findStatic(method.getDeclaringClass(), method.getName(), MethodType.methodType(void.class, method.getParameterTypes()[0])),
+                        MethodType.methodType(void.class, method.getParameterTypes()[0])
+                );
+                Caller caller = new Caller(method.getDeclaringClass(), handlerInfo, (Consumer) callSite.getTarget().invokeExact());
+                if (eventCache != null) eventCache.put(cacheKey, caller);
+                return caller;
+            }
         } else {
-            CallSite callSite = LambdaMetafactory.metafactory(
-                    MethodHandles.lookup(),
-                    "accept",
-                    MethodType.methodType(BiConsumer.class),
-                    MethodType.methodType(void.class, Object.class, Object.class),
-                    MethodHandles.lookup().findVirtual(method.getDeclaringClass(), method.getName(), MethodType.methodType(void.class, method.getParameterTypes()[0])),
-                    MethodType.methodType(void.class, instance.getClass(), method.getParameterTypes()[0])
-            );
-            BiConsumer consumer = (BiConsumer) callSite.getTarget().invokeExact();
-            return new Caller(method.getDeclaringClass(), instance, handlerInfo, consumer);
+            String cacheKey = "virtual " + method.getDeclaringClass().getName() + " " + method;
+            if (eventCache != null && eventCache.containsKey(cacheKey)) {
+                return eventCache.get(cacheKey);
+            } else {
+                CallSite callSite = LambdaMetafactory.metafactory(
+                        MethodHandles.lookup(),
+                        "accept",
+                        MethodType.methodType(BiConsumer.class),
+                        MethodType.methodType(void.class, Object.class, Object.class),
+                        MethodHandles.lookup().findVirtual(method.getDeclaringClass(), method.getName(), MethodType.methodType(void.class, method.getParameterTypes()[0])),
+                        MethodType.methodType(void.class, instance.getClass(), method.getParameterTypes()[0])
+                );
+                Caller caller = new Caller(method.getDeclaringClass(), instance, handlerInfo, (BiConsumer) callSite.getTarget().invokeExact());
+                if (eventCache != null) eventCache.put(cacheKey, caller);
+                return caller;
+            }
         }
     }
 

@@ -3,9 +3,13 @@ package test;
 import net.lenni0451.le.EventHandler;
 import net.lenni0451.le.LambdaManager;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class Test {
+
+    public static final Map<String, Object> _LAMBDA_CACHE = new HashMap<>();
 
     public static void main(String[] args) {
         System.out.println("Register");
@@ -27,13 +31,13 @@ public class Test {
         System.out.println();
     }
 
-    @EventHandler(priority = 120, eventClasses = {Integer.class, String.class})
+    @EventHandler(eventClasses = {Integer.class, String.class})
     public static Consumer<Object> testBoth = o -> System.out.println("Both Consumer: " + o.getClass().getName() + " " + o);
 
-    @EventHandler(priority = 120, eventClasses = Integer.class)
+    @EventHandler(eventClasses = Integer.class)
     public static Consumer<Object> testInteger = o -> System.out.println("Integer Consumer: " + o.getClass().getName() + " " + o);
 
-    @EventHandler(priority = 120, eventClasses = String.class)
+    @EventHandler(eventClasses = String.class)
     public static Consumer<Object> testString = o -> System.out.println("String Consumer: " + o.getClass().getName() + " " + o);
 
 }

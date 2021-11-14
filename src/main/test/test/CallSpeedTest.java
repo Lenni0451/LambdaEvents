@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.util.HashMap;
+import java.util.Map;
 
 public class CallSpeedTest {
 
@@ -103,6 +104,8 @@ public class CallSpeedTest {
     }
 
     public static class EventListener {
+
+        public static final Map<String, Object> _LAMBDA_CACHE = new HashMap<>();
 
 //        @EventHandler(eventClass = ExampleEvent1.class)
 //        public final Consumer<ExampleEvent1> exampleEvent1Consumer = CallSpeedTest::testCodeHere;
