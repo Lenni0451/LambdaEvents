@@ -162,7 +162,7 @@ public class LambdaManager {
                 if (list.isEmpty()) toRemove.add(entry.getKey());
             }
         } else {
-            List<Caller> list = this.invoker.get(clazz);
+            List<Caller> list = this.invoker.get(eventClass);
             if (list == null) return;
             list.removeIf(caller -> caller.isStatic() == isStatic && caller.getOwnerClass().equals(clazz));
         }
