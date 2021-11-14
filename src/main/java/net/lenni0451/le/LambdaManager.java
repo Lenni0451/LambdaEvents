@@ -63,8 +63,15 @@ public class LambdaManager {
         for (Method method : clazz.getDeclaredMethods()) {
             EventHandler handlerInfo = method.getDeclaredAnnotation(EventHandler.class);
             if (handlerInfo == null) continue;
+            if (handlerInfo.eventClasses().length != 0) {
+                //The listener would get skipped. This may save someone from a lot of headache because of event listener not behaving as expected
+                throw new IllegalStateException("Method '" + method.getName() + "' in class '" + method.getDeclaringClass().getName() + "' has event classes specified in annotation which is not supported");
+            }
             if (isStatic != Modifier.isStatic(method.getModifiers())) continue;
-            if (method.getParameterCount() != 1) continue;
+            if (method.getParameterCount() != 1) {
+                //The listener would get skipped. This may save someone from a lot of headache because of not working event listener
+                throw new IllegalStateException("Method '" + method.getName() + "' in class '" + method.getDeclaringClass().getName() + "' has multiple arguments specified which is not supported");
+            }
             if (eventClass != null && !method.getParameterTypes()[0].equals(eventClass)) continue;
             try {
                 List<Caller> list = this.invoker.computeIfAbsent(method.getParameterTypes()[0], c -> new CopyOnWriteArrayList<>());
