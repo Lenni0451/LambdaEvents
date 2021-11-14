@@ -229,7 +229,7 @@ public class LambdaManager {
         try {
             Field f = method.getDeclaringClass().getField("_LAMBDA_CACHE");
             f.setAccessible(true);
-            eventCache = (Map<String, Caller>) f.get(null);
+            eventCache = (Map<String, Caller>) f.get(instance);
         } catch (Throwable ignored) {
         }
         if (isStatic) {
