@@ -41,25 +41,25 @@ public class LambdaManager {
     /**
      * Register all event listener in a class
      *
-     * @param instanceOrClass Instance if virtual events/Class if static events
+     * @param handler Instance if virtual events/Class if static events
      * @throws IllegalStateException If there is something wrong with your listener
      */
-    public void register(final Object instanceOrClass) {
-        this.register(null, instanceOrClass);
+    public void register(final Object handler) {
+        this.register(null, handler);
     }
 
     /**
      * Register all event listener in a class
      *
-     * @param eventClass      The class of the event to register
-     * @param instanceOrClass Instance if virtual events/Class if static events
+     * @param eventClass The class of the event to register
+     * @param handler    Instance if virtual events/Class if static events
      * @throws IllegalStateException If there is something wrong with your listener
      */
-    public void register(final Class<?> eventClass, final Object instanceOrClass) {
-        Objects.requireNonNull(instanceOrClass, "Instance or class can not be null");
+    public void register(final Class<?> eventClass, final Object handler) {
+        Objects.requireNonNull(handler, "Instance or class can not be null");
 
-        final boolean isStatic = instanceOrClass instanceof Class<?>;
-        final Class<?> clazz = isStatic ? (Class<?>) instanceOrClass : instanceOrClass.getClass();
+        final boolean isStatic = handler instanceof Class<?>;
+        final Class<?> clazz = isStatic ? (Class<?>) handler : handler.getClass();
         for (Method method : clazz.getDeclaredMethods()) {
             EventHandler handlerInfo = method.getDeclaredAnnotation(EventHandler.class);
             if (handlerInfo == null) continue;
@@ -75,7 +75,7 @@ public class LambdaManager {
             if (eventClass != null && !method.getParameterTypes()[0].equals(eventClass)) continue;
             try {
                 List<Caller> list = this.invoker.computeIfAbsent(method.getParameterTypes()[0], c -> new CopyOnWriteArrayList<>());
-                list.add(this.generate(isStatic ? null : instanceOrClass, method, handlerInfo));
+                list.add(this.generate(isStatic ? null : handler, method, handlerInfo));
                 list.sort(Caller.COMPARATOR);
             } catch (Throwable e) {
                 throw new IllegalStateException("Unable to create Consumer for method '" + method.getName() + "' in class '" + method.getDeclaringClass().getName() + "'", e);
@@ -91,7 +91,7 @@ public class LambdaManager {
             if (isStatic != Modifier.isStatic(field.getModifiers())) continue;
             if (eventClass != null && !Arrays.asList(handlerInfo.eventClasses()).contains(eventClass)) continue;
             try {
-                Consumer consumer = (Consumer) field.get(isStatic ? null : instanceOrClass);
+                Consumer consumer = (Consumer) field.get(isStatic ? null : handler);
                 for (Class<?> eventType : handlerInfo.eventClasses()) {
                     List<Caller> list = this.invoker.computeIfAbsent(eventType, c -> new CopyOnWriteArrayList<>());
                     Caller caller = new Caller(field.getDeclaringClass(), handlerInfo, consumer);
@@ -143,23 +143,23 @@ public class LambdaManager {
     /**
      * Unregister all event listener in a class
      *
-     * @param instanceOrClass Instance if virtual events/Class if static events
+     * @param handler Instance if virtual events/Class if static events
      */
-    public void unregister(final Object instanceOrClass) {
-        this.unregister(null, instanceOrClass);
+    public void unregister(final Object handler) {
+        this.unregister(null, handler);
     }
 
     /**
      * Unregister all event listener in a class
      *
-     * @param eventClass      The class of the event to register
-     * @param instanceOrClass Instance if virtual events/Class if static events
+     * @param eventClass The class of the event to register
+     * @param handler    Instance if virtual events/Class if static events
      */
-    public void unregister(final Class<?> eventClass, final Object instanceOrClass) {
-        Objects.requireNonNull(instanceOrClass, "Instance or class can not be null");
+    public void unregister(final Class<?> eventClass, final Object handler) {
+        Objects.requireNonNull(handler, "Instance or class can not be null");
 
-        final boolean isStatic = instanceOrClass instanceof Class<?>;
-        final Class<?> clazz = isStatic ? (Class<?>) instanceOrClass : instanceOrClass.getClass();
+        final boolean isStatic = handler instanceof Class<?>;
+        final Class<?> clazz = isStatic ? (Class<?>) handler : handler.getClass();
         List<Class<?>> toRemove = new ArrayList<>();
         if (eventClass == null) {
             for (Map.Entry<Class<?>, List<Caller>> entry : this.invoker.entrySet()) {
