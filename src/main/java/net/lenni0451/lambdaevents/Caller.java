@@ -1,4 +1,4 @@
-package net.lenni0451.le;
+package net.lenni0451.lambdaevents;
 
 import java.util.Comparator;
 import java.util.function.BiConsumer;

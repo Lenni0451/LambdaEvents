@@ -1,4 +1,4 @@
-package net.lenni0451.le;
+package net.lenni0451.lambdaevents;
 
 class StopCall extends RuntimeException {
 

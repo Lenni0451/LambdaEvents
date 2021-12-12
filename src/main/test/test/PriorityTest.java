@@ -1,7 +1,7 @@
 package test;
 
-import net.lenni0451.le.EventHandler;
-import net.lenni0451.le.LambdaManager;
+import net.lenni0451.lambdaevents.EventHandler;
+import net.lenni0451.lambdaevents.LambdaManager;
 
 public class PriorityTest {
 
