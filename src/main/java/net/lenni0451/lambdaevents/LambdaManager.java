@@ -73,15 +73,19 @@ public class LambdaManager {
                 throw new IllegalStateException("Method '" + method.getName() + "' in class '" + method.getDeclaringClass().getName() + "' has multiple arguments specified which is not supported");
             }
             if (eventClass != null && !method.getParameterTypes()[0].equals(eventClass)) continue;
+            if (!Modifier.isPublic(method.getModifiers())) {
+                throw new IllegalStateException("Method '" + method.getName() + "' in class '" + method.getDeclaringClass().getName() + "' is not public which is not supported");
+            }
             try {
                 List<Caller> list = this.invoker.computeIfAbsent(method.getParameterTypes()[0], c -> new CopyOnWriteArrayList<>());
                 list.add(this.generate(isStatic ? null : handler, method, handlerInfo));
                 list.sort(Caller.COMPARATOR);
-            } catch (Throwable e) {
-                throw new IllegalStateException("Unable to create Consumer for method '" + method.getName() + "' in class '" + method.getDeclaringClass().getName() + "'", e);
+            } catch (Throwable t) {
+                throw new IllegalStateException("Unable to create Consumer for method '" + method.getName() + "' in class '" + method.getDeclaringClass().getName() + "'", t);
             }
         }
         for (Field field : clazz.getDeclaredFields()) {
+            field.setAccessible(true);
             EventHandler handlerInfo = field.getDeclaredAnnotation(EventHandler.class);
             if (!field.getType().equals(Consumer.class)) continue;
             if (handlerInfo == null) continue;
@@ -100,7 +104,7 @@ public class LambdaManager {
                     list.sort(Caller.COMPARATOR);
                 }
             } catch (Throwable t) {
-                throw new IllegalStateException("Unable to get Consumer '" + field.getName() + "' in class '" + field.getDeclaringClass().getName() + "'");
+                throw new IllegalStateException("Unable to get Consumer '" + field.getName() + "' in class '" + field.getDeclaringClass().getName() + "'", t);
             }
         }
     }
