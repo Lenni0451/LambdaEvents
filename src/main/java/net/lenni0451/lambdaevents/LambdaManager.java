@@ -8,6 +8,7 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -89,14 +90,20 @@ public class LambdaManager {
             EventHandler handlerInfo = field.getDeclaredAnnotation(EventHandler.class);
             if (!field.getType().equals(Consumer.class)) continue;
             if (handlerInfo == null) continue;
-            if (handlerInfo.eventClasses().length == 0) {
+            List<Class<?>> eventClasses = new ArrayList<>();
+            Collections.addAll(eventClasses, handlerInfo.eventClasses());
+            if (eventClasses.isEmpty() && field.getGenericType() instanceof ParameterizedType) {
+                ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
+                if (parameterizedType.getActualTypeArguments().length == 1) eventClasses.add((Class<?>) parameterizedType.getActualTypeArguments()[0]);
+            }
+            if (eventClasses.isEmpty()) {
                 throw new IllegalStateException("Consumer '" + field.getName() + "' in class '" + field.getDeclaringClass().getName() + "' does not have any event types set");
             }
             if (isStatic != Modifier.isStatic(field.getModifiers())) continue;
-            if (eventClass != null && !Arrays.asList(handlerInfo.eventClasses()).contains(eventClass)) continue;
+            if (eventClass != null && !eventClasses.contains(eventClass)) continue;
             try {
                 Consumer consumer = (Consumer) field.get(isStatic ? null : handler);
-                for (Class<?> eventType : handlerInfo.eventClasses()) {
+                for (Class<?> eventType : eventClasses) {
                     List<Caller> list = this.invoker.computeIfAbsent(eventType, c -> new CopyOnWriteArrayList<>());
                     Caller caller = new Caller(field.getDeclaringClass(), handlerInfo, consumer);
                     Caller._setStatic(caller, isStatic);

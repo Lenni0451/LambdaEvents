@@ -34,10 +34,10 @@ public class Test {
     @EventHandler(eventClasses = {Integer.class, String.class})
     public static Consumer<Object> testBoth = o -> System.out.println("Both Consumer: " + o.getClass().getName() + " " + o);
 
-    @EventHandler(eventClasses = Integer.class)
-    public static Consumer<Object> testInteger = o -> System.out.println("Integer Consumer: " + o.getClass().getName() + " " + o);
+    @EventHandler
+    public static Consumer<Integer> testInteger = o -> System.out.println("Integer Consumer: " + o.getClass().getName() + " " + o);
 
-    @EventHandler(eventClasses = String.class)
-    public static Consumer<Object> testString = o -> System.out.println("String Consumer: " + o.getClass().getName() + " " + o);
+    @EventHandler
+    public static Consumer<String> testString = o -> System.out.println("String Consumer: " + o.getClass().getName() + " " + o);
 
 }
