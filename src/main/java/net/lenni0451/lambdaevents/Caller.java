@@ -24,7 +24,7 @@ class Caller {
     private final Consumer staticConsumer;
     private boolean isStatic;
 
-    protected Caller(final Class<?> ownerClass, final Object instance, final EventHandler handlerInfo, final BiConsumer virtualConsumer) {
+    protected Caller(final Class<?> ownerClass, final Object instance, final EventHandler handlerInfo, final BiConsumer<?, ?> virtualConsumer) {
         this.ownerClass = ownerClass;
         this.instance = instance;
         this.handlerInfo = handlerInfo;
@@ -33,7 +33,7 @@ class Caller {
         this.isStatic = false;
     }
 
-    protected Caller(final Class<?> ownerClass, final EventHandler handlerInfo, final Consumer staticConsumer) {
+    protected Caller(final Class<?> ownerClass, final EventHandler handlerInfo, final Consumer<?> staticConsumer) {
         this.ownerClass = ownerClass;
         this.instance = null;
         this.handlerInfo = handlerInfo;
@@ -46,12 +46,20 @@ class Caller {
         return this.ownerClass;
     }
 
-    boolean isStatic() {
-        return this.isStatic;
+    Object getInstance() {
+        return this.instance;
     }
 
     EventHandler getHandlerInfo() {
         return this.handlerInfo;
+    }
+
+    Consumer<?> getStaticConsumer() {
+        return this.staticConsumer;
+    }
+
+    boolean isStatic() {
+        return this.isStatic;
     }
 
     void call(final Object event) {

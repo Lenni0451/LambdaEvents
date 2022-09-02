@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class LambdaManager {
 
@@ -102,7 +103,7 @@ public class LambdaManager {
             if (isStatic != Modifier.isStatic(field.getModifiers())) continue;
             if (eventClass != null && !eventClasses.contains(eventClass)) continue;
             try {
-                Consumer consumer = (Consumer) field.get(isStatic ? null : handler);
+                Consumer<?> consumer = (Consumer<?>) field.get(isStatic ? null : handler);
                 for (Class<?> eventType : eventClasses) {
                     List<Caller> list = this.invoker.computeIfAbsent(eventType, c -> new CopyOnWriteArrayList<>());
                     Caller caller = new Caller(field.getDeclaringClass(), handlerInfo, consumer);
@@ -125,11 +126,11 @@ public class LambdaManager {
      * @param priority   The priority of the handler
      * @param <T>        The event type
      */
-    public <T> void register(final Class<T> eventClass, final Consumer<T> consumer, final byte priority) {
+    public <T> void register(final Class<T> eventClass, final Consumer<?> consumer, final byte priority) {
         Objects.requireNonNull(eventClass, "Event class can not be null");
         Objects.requireNonNull(consumer, "Consumer can not be null");
 
-        Caller directCaller = new Caller(consumer.getClass(), new EventHandler() {
+        Caller directCaller = new Caller(null, new EventHandler() {
             @Override
             public Class<? extends Annotation> annotationType() {
                 return EventHandler.class;
@@ -172,16 +173,22 @@ public class LambdaManager {
         final boolean isStatic = handler instanceof Class<?>;
         final Class<?> clazz = isStatic ? (Class<?>) handler : handler.getClass();
         List<Class<?>> toRemove = new ArrayList<>();
+        Predicate<Caller> removePredicate = caller -> {
+            if (caller.isStatic() != isStatic) return false;
+            if (isStatic) return clazz.equals(caller.getOwnerClass());
+            return handler.equals(caller.getInstance());
+        };
         if (eventClass == null) {
             for (Map.Entry<Class<?>, List<Caller>> entry : this.invoker.entrySet()) {
                 List<Caller> list = entry.getValue();
-                list.removeIf(caller -> caller.isStatic() == isStatic && caller.getOwnerClass().equals(clazz));
+                list.removeIf(removePredicate);
                 if (list.isEmpty()) toRemove.add(entry.getKey());
             }
         } else {
             List<Caller> list = this.invoker.get(eventClass);
             if (list == null) return;
-            list.removeIf(caller -> caller.isStatic() == isStatic && caller.getOwnerClass().equals(clazz));
+            list.removeIf(removePredicate);
+            if (list.isEmpty()) toRemove.add(eventClass);
         }
         for (Class<?> clazzToRemove : toRemove) this.invoker.remove(clazzToRemove);
     }
@@ -194,7 +201,8 @@ public class LambdaManager {
      * @param <T>        The event type
      */
     public <T> void unregister(final Class<T> eventClass, final Consumer<?> consumer) {
-        this.invoker.get(eventClass).removeIf(caller -> caller.getOwnerClass().equals(consumer.getClass()));
+        List<Caller> list = this.invoker.get(eventClass);
+        if (list != null) list.removeIf(caller -> consumer.equals(caller.getStaticConsumer()));
     }
 
 
@@ -236,47 +244,26 @@ public class LambdaManager {
      */
     private Caller generate(final Object instance, final Method method, final EventHandler handlerInfo) throws Throwable {
         final boolean isStatic = instance == null;
-        Map<String, Caller> eventCache = null;
-        try {
-            Field f = method.getDeclaringClass().getField("_LAMBDA_CACHE");
-            f.setAccessible(true);
-            eventCache = (Map<String, Caller>) f.get(instance);
-        } catch (Throwable ignored) {
-        }
         if (isStatic) {
-            String cacheKey = "static " + method.getDeclaringClass().getName() + " " + method;
-            if (eventCache != null && eventCache.containsKey(cacheKey)) {
-                return eventCache.get(cacheKey);
-            } else {
-                CallSite callSite = LambdaMetafactory.metafactory(
-                        MethodHandles.lookup(),
-                        "accept",
-                        MethodType.methodType(Consumer.class),
-                        MethodType.methodType(void.class, Object.class),
-                        MethodHandles.lookup().findStatic(method.getDeclaringClass(), method.getName(), MethodType.methodType(void.class, method.getParameterTypes()[0])),
-                        MethodType.methodType(void.class, method.getParameterTypes()[0])
-                );
-                Caller caller = new Caller(method.getDeclaringClass(), handlerInfo, (Consumer) callSite.getTarget().invokeExact());
-                if (eventCache != null) eventCache.put(cacheKey, caller);
-                return caller;
-            }
+            CallSite callSite = LambdaMetafactory.metafactory(
+                    MethodHandles.lookup(),
+                    "accept",
+                    MethodType.methodType(Consumer.class),
+                    MethodType.methodType(void.class, Object.class),
+                    MethodHandles.lookup().findStatic(method.getDeclaringClass(), method.getName(), MethodType.methodType(void.class, method.getParameterTypes()[0])),
+                    MethodType.methodType(void.class, method.getParameterTypes()[0])
+            );
+            return new Caller(method.getDeclaringClass(), handlerInfo, (Consumer<?>) callSite.getTarget().invokeExact());
         } else {
-            String cacheKey = "virtual " + method.getDeclaringClass().getName() + " " + method;
-            if (eventCache != null && eventCache.containsKey(cacheKey)) {
-                return eventCache.get(cacheKey);
-            } else {
-                CallSite callSite = LambdaMetafactory.metafactory(
-                        MethodHandles.lookup(),
-                        "accept",
-                        MethodType.methodType(BiConsumer.class),
-                        MethodType.methodType(void.class, Object.class, Object.class),
-                        MethodHandles.lookup().findVirtual(method.getDeclaringClass(), method.getName(), MethodType.methodType(void.class, method.getParameterTypes()[0])),
-                        MethodType.methodType(void.class, instance.getClass(), method.getParameterTypes()[0])
-                );
-                Caller caller = new Caller(method.getDeclaringClass(), instance, handlerInfo, (BiConsumer) callSite.getTarget().invokeExact());
-                if (eventCache != null) eventCache.put(cacheKey, caller);
-                return caller;
-            }
+            CallSite callSite = LambdaMetafactory.metafactory(
+                    MethodHandles.lookup(),
+                    "accept",
+                    MethodType.methodType(BiConsumer.class),
+                    MethodType.methodType(void.class, Object.class, Object.class),
+                    MethodHandles.lookup().findVirtual(method.getDeclaringClass(), method.getName(), MethodType.methodType(void.class, method.getParameterTypes()[0])),
+                    MethodType.methodType(void.class, instance.getClass(), method.getParameterTypes()[0])
+            );
+            return new Caller(method.getDeclaringClass(), instance, handlerInfo, (BiConsumer<?, ?>) callSite.getTarget().invokeExact());
         }
     }
 

@@ -7,12 +7,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.function.Consumer;
 
 public class CallSpeedTest {
 
     public static void main(String[] args) {
-        for (int i = 0; i < 10; i++) run(new PrintStream(new ByteArrayOutputStream()));
+        for (int i = 0; i < 10; i++) run(new PrintStream(new ByteArrayOutputStream())); //Let the JVM optimize the code
         run(System.out);
     }
 
@@ -87,7 +87,7 @@ public class CallSpeedTest {
         }
         out.println();
 
-        out.println("---------- UnRegister Event Listener ----------");
+        out.println("---------- Unregister Event Listener ----------");
         long unregisterTime;
         {
             unregisterTime = System.nanoTime();
@@ -105,12 +105,10 @@ public class CallSpeedTest {
 
     public static class EventListener {
 
-        public static final Map<String, Object> _LAMBDA_CACHE = new HashMap<>();
-
-//        @EventHandler(eventClass = ExampleEvent1.class)
-//        public final Consumer<ExampleEvent1> exampleEvent1Consumer = CallSpeedTest::testCodeHere;
-//        @EventHandler(eventClass = ExampleEvent2.class)
-//        public final Consumer<ExampleEvent2> exampleEvent2Consumer = CallSpeedTest::testCodeHere;
+        @EventHandler(eventClasses = ExampleEvent1.class)
+        public final Consumer<ExampleEvent1> exampleEvent1Consumer = CallSpeedTest::testCodeHere;
+        @EventHandler(eventClasses = ExampleEvent2.class)
+        public final Consumer<ExampleEvent2> exampleEvent2Consumer = CallSpeedTest::testCodeHere;
 
         @EventHandler
         public void onEvent(ExampleEvent1 event) {
