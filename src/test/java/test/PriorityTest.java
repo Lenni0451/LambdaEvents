@@ -11,17 +11,17 @@ public class PriorityTest {
     }
 
     @EventHandler(priority = -1)
-    public static void last(String s) {
+    private static void last(String s) {
         System.out.println("I should be last");
     }
 
     @EventHandler(priority = 0)
-    public static void middle(String s) {
+    private static void middle(String s) {
         System.out.println("I should be second");
     }
 
     @EventHandler(priority = 1)
-    public static void first(String s) {
+    private static void first(String s) {
         System.out.println("I should be first");
     }
 

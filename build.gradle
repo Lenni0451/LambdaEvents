@@ -29,7 +29,7 @@ publishing {
         maven(MavenPublication) {
             groupId = "net.lenni0451"
             artifactId = "LambdaEvents"
-            version = "1.0.0"
+            version = "1.1.0"
 
             from components.java
         }

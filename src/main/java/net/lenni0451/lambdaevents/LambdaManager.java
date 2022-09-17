@@ -1,5 +1,7 @@
 package net.lenni0451.lambdaevents;
 
+import sun.misc.Unsafe;
+
 import java.lang.annotation.Annotation;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
@@ -19,6 +21,27 @@ import java.util.function.Predicate;
 public class LambdaManager {
 
     private static LambdaManager GLOBAL;
+    private static MethodHandles.Lookup TRUSTED_LOOKUP;
+
+    static {
+        try {
+            Unsafe unsafe = null;
+            for (Field field : Unsafe.class.getDeclaredFields()) {
+                if (field.getType().equals(Unsafe.class)) {
+                    field.setAccessible(true);
+                    unsafe = (Unsafe) field.get(null);
+                    break;
+                }
+            }
+            if (unsafe == null) throw new IllegalStateException("Failed to get unsafe");
+
+            MethodHandles.lookup(); //Initialize the Lookup class
+            Field trustedLookup = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
+            TRUSTED_LOOKUP = (MethodHandles.Lookup) unsafe.getObject(unsafe.staticFieldBase(trustedLookup), unsafe.staticFieldOffset(trustedLookup));
+        } catch (Throwable t) {
+            new IllegalStateException("Failed to get trusted lookup instance. Event handler methods have to be public!", t).printStackTrace();
+        }
+    }
 
     /**
      * Get the global instance of the {@link LambdaManager}<br>
@@ -75,7 +98,7 @@ public class LambdaManager {
                 throw new IllegalStateException("Method '" + method.getName() + "' in class '" + method.getDeclaringClass().getName() + "' has multiple arguments specified which is not supported");
             }
             if (eventClass != null && !method.getParameterTypes()[0].equals(eventClass)) continue;
-            if (!Modifier.isPublic(method.getModifiers())) {
+            if (!Modifier.isPublic(method.getModifiers()) && TRUSTED_LOOKUP == null) {
                 throw new IllegalStateException("Method '" + method.getName() + "' in class '" + method.getDeclaringClass().getName() + "' is not public which is not supported");
             }
             try {
@@ -244,23 +267,24 @@ public class LambdaManager {
      */
     private Caller generate(final Object instance, final Method method, final EventHandler handlerInfo) throws Throwable {
         final boolean isStatic = instance == null;
+        MethodHandles.Lookup lookup = TRUSTED_LOOKUP == null ? MethodHandles.lookup() : TRUSTED_LOOKUP.in(method.getDeclaringClass());
         if (isStatic) {
             CallSite callSite = LambdaMetafactory.metafactory(
-                    MethodHandles.lookup(),
+                    lookup,
                     "accept",
                     MethodType.methodType(Consumer.class),
                     MethodType.methodType(void.class, Object.class),
-                    MethodHandles.lookup().findStatic(method.getDeclaringClass(), method.getName(), MethodType.methodType(void.class, method.getParameterTypes()[0])),
+                    lookup.findStatic(method.getDeclaringClass(), method.getName(), MethodType.methodType(void.class, method.getParameterTypes()[0])),
                     MethodType.methodType(void.class, method.getParameterTypes()[0])
             );
             return new Caller(method.getDeclaringClass(), handlerInfo, (Consumer<?>) callSite.getTarget().invokeExact());
         } else {
             CallSite callSite = LambdaMetafactory.metafactory(
-                    MethodHandles.lookup(),
+                    lookup,
                     "accept",
                     MethodType.methodType(BiConsumer.class),
                     MethodType.methodType(void.class, Object.class, Object.class),
-                    MethodHandles.lookup().findVirtual(method.getDeclaringClass(), method.getName(), MethodType.methodType(void.class, method.getParameterTypes()[0])),
+                    lookup.findVirtual(method.getDeclaringClass(), method.getName(), MethodType.methodType(void.class, method.getParameterTypes()[0])),
                     MethodType.methodType(void.class, instance.getClass(), method.getParameterTypes()[0])
             );
             return new Caller(method.getDeclaringClass(), instance, handlerInfo, (BiConsumer<?, ?>) callSite.getTarget().invokeExact());
