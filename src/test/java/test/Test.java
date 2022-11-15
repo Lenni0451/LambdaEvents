@@ -2,38 +2,52 @@ package test;
 
 import net.lenni0451.lambdaevents.EventHandler;
 import net.lenni0451.lambdaevents.LambdaManager;
+import net.lenni0451.lambdaevents.generator.ReflectionGenerator;
 
-import java.util.function.Consumer;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Test {
 
-    public static void main(String[] args) {
-        System.out.println("Register");
-        LambdaManager.g().register(Test.class);
-        LambdaManager.g().call(1337);
-        LambdaManager.g().call("Test");
+    public static void main(String[] args) throws Throwable {
+        LambdaManager lm = new LambdaManager(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new, new ReflectionGenerator());
+//        LambdaManager lm = new LambdaManager(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new, new MethodHandleGenerator(MethodHandles.lookup()));
+//        LambdaManager lm = new LambdaManager(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new, new LambdaMetaFactoryGenerator(MethodHandles.lookup()));
+        Test test = new Test();
+
+        lm.register(test);
+        lm.register(Test.class);
+
+        lm.call("Test 1");
         System.out.println();
 
-        System.out.println("Unregister Integer");
-        LambdaManager.g().unregister(Integer.class, Test.class);
-        LambdaManager.g().call(1337);
-        LambdaManager.g().call("Test");
+        lm.unregister(test);
+        lm.call("Test 2");
         System.out.println();
 
-        System.out.println("Unregister");
-        LambdaManager.g().unregister(Test.class);
-        LambdaManager.g().call(1337);
-        LambdaManager.g().call("Test");
+        lm.unregister(Test.class);
+        lm.call("Test 3");
         System.out.println();
     }
 
-    @EventHandler(eventClasses = {Integer.class, String.class})
-    public static Consumer<Object> testBoth = o -> System.out.println("Both Consumer: " + o.getClass().getName() + " " + o);
+    @EventHandler
+    public static void staticTest(final String s) {
+        System.out.println("Static 1: " + s);
+    }
+
+    @EventHandler(events = String.class)
+    public static void staticTest() {
+        System.out.println("Static 2");
+    }
 
     @EventHandler
-    public static Consumer<Integer> testInteger = o -> System.out.println("Integer Consumer: " + o.getClass().getName() + " " + o);
+    public void test(final String s) {
+        System.out.println("Instance 1: " + s);
+    }
 
-    @EventHandler
-    public static Consumer<String> testString = o -> System.out.println("String Consumer: " + o.getClass().getName() + " " + o);
+    @EventHandler(events = String.class)
+    public void test() {
+        System.out.println("Instance 2");
+    }
 
 }

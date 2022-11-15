@@ -6,6 +6,18 @@ plugins {
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 compileJava.options.encoding = "UTF-8"
 
+archivesBaseName = project.maven_name
+group = project.maven_group
+version = project.maven_version
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "com.google.code.findbugs:jsr305:3.0.2"
+}
+
 java {
     withSourcesJar()
     withJavadocJar()
@@ -15,7 +27,7 @@ publishing {
     repositories {
         maven {
             name = "reposilite"
-            url = "https://maven.lenni0451.net/releases"
+            url = ((project.snapshot == "true") ? "https://maven.lenni0451.net/snapshots" : "https://maven.lenni0451.net/releases")
             credentials(PasswordCredentials)
             authentication {
                 basic(BasicAuthentication)
@@ -24,9 +36,9 @@ publishing {
     }
     publications {
         maven(MavenPublication) {
-            groupId = "net.lenni0451"
-            artifactId = "LambdaEvents"
-            version = "1.1.0"
+            artifactId = project.maven_name
+            groupId = project.maven_group
+            version = project.maven_version
 
             from components.java
         }

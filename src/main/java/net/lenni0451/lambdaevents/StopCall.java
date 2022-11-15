@@ -1,13 +1,11 @@
 package net.lenni0451.lambdaevents;
 
-class StopCall extends RuntimeException {
+public class StopCall extends RuntimeException {
 
-    protected StopCall() {
-    }
+    public static StopCall INSTANCE = new StopCall();
 
-    @Override
-    public String toString() {
-        return "Throw this to stop the current event pipeline";
+
+    private StopCall() {
     }
 
     @Override
