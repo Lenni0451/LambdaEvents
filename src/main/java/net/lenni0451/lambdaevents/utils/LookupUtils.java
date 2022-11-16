@@ -67,7 +67,7 @@ public class LookupUtils {
         ClassLoader wantedLoader = wanted.getClassLoader();
         ClassLoader clazzLoader = clazz.getClassLoader();
         if (wantedLoader == clazzLoader) return true;
-        if (wantedLoader != null && clazzLoader == null) return true;
+        if (wantedLoader != null && clazzLoader == null) return false;
         if (wantedLoader == null && wanted.getName().startsWith("java.")) return true;
         try {
             return Class.forName(wanted.getName(), false, clazzLoader) == wanted;
