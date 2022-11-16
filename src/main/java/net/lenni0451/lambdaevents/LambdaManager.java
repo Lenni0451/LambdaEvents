@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -172,7 +173,7 @@ public class LambdaManager {
 
 
     private void resortHandlers(final List<AHandler> handlers) {
-
+        handlers.sort(Comparator.comparingInt((AHandler o) -> o.getAnnotation().priority()).reversed());
     }
 
 }
