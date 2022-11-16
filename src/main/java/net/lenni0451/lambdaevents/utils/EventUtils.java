@@ -44,6 +44,11 @@ public class EventUtils {
         return handler;
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T extends Throwable> void sneak(final Throwable t) throws T {
+        throw (T) t;
+    }
+
 
     public static class MethodHandler {
         private final EventHandler annotation;
