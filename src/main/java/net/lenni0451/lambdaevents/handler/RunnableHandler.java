@@ -15,6 +15,11 @@ public class RunnableHandler extends AHandler {
         this.runnable = runnable;
     }
 
+    @Nonnull
+    public Runnable getRunnable() {
+        return this.runnable;
+    }
+
     @Override
     public void call(Object event) {
         this.runnable.run();

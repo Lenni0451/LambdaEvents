@@ -3,6 +3,7 @@ package net.lenni0451.lambdaevents.utils;
 import net.lenni0451.lambdaevents.EventHandler;
 
 import javax.annotation.Nonnull;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -99,6 +100,26 @@ public class EventUtils {
     @SuppressWarnings("unchecked")
     public static <T extends Throwable> void sneak(@Nonnull final Throwable t) throws T {
         throw (T) t;
+    }
+
+    @Nonnull
+    public static EventHandler newEventHandler(final byte priority) {
+        return new EventHandler() {
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return EventHandler.class;
+            }
+
+            @Override
+            public byte priority() {
+                return priority;
+            }
+
+            @Override
+            public Class<?>[] events() {
+                return new Class[0];
+            }
+        };
     }
 
 

@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -77,6 +78,35 @@ public class LambdaManager {
         for (EventUtils.FieldHandler handler : EventUtils.getFields(owner.getClass(), field -> !Modifier.isStatic(field.getModifiers()))) {
             if (event == null) this.registerField(owner.getClass(), owner, handler.getAnnotation(), handler.getField(), e -> true);
             else this.registerField(owner.getClass(), owner, handler.getAnnotation(), handler.getField(), e -> e.equals(event));
+        }
+    }
+
+    public void register(@Nonnull final Runnable runnable, @Nonnull final Class<?>... events) {
+        this.register(runnable, (byte) 0, events);
+    }
+
+    public void register(@Nonnull final Runnable runnable, final byte priority, @Nonnull final Class<?>... events) {
+        if (events.length == 0) throw new IllegalArgumentException("No events specified");
+        synchronized (this.handlers) {
+            for (Class<?> event : events) {
+                List<AHandler> handlers = this.handlers.computeIfAbsent(event, (key) -> this.listSupplier.get());
+                handlers.add(new RunnableHandler(runnable.getClass(), null, EventUtils.newEventHandler(priority), runnable));
+            }
+        }
+    }
+
+    public void register(@Nonnull final Consumer<?> consumer, @Nonnull final Class<?>... events) {
+        this.register(consumer, (byte) 0, events);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public void register(@Nonnull final Consumer consumer, final byte priority, @Nonnull final Class<?>... events) {
+        if (events.length == 0) throw new IllegalArgumentException("No events specified");
+        synchronized (this.handlers) {
+            for (Class<?> event : events) {
+                List<AHandler> handlers = this.handlers.computeIfAbsent(event, (key) -> this.listSupplier.get());
+                handlers.add(new ConsumerHandler(consumer.getClass(), null, EventUtils.newEventHandler(priority), consumer));
+            }
         }
     }
 
@@ -169,6 +199,62 @@ public class LambdaManager {
             handlers.removeIf(handler -> !handler.isStatic() && handler.getInstance().equals(owner));
             if (handlers.isEmpty()) this.handlers.remove(event);
             else this.resortHandlers(handlers);
+        }
+    }
+
+    public void unregister(@Nonnull final Runnable runnable) {
+        synchronized (this.handlers) {
+            Iterator<Map.Entry<Class<?>, List<AHandler>>> it = this.handlers.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<Class<?>, List<AHandler>> entry = it.next();
+                List<AHandler> handlers = entry.getValue();
+                handlers.removeIf(handler -> handler instanceof RunnableHandler && ((RunnableHandler) handler).getRunnable().equals(runnable));
+                if (handlers.isEmpty()) it.remove();
+            }
+        }
+    }
+
+    public void unregister(@Nonnull final Runnable runnable, @Nonnull final Class<?>... events) {
+        if (events.length == 0) {
+            this.unregister(runnable);
+            return;
+        }
+        synchronized (this.handlers) {
+            for (Class<?> event : events) {
+                List<AHandler> handlers = this.handlers.get(event);
+                if (handlers == null) continue;
+                handlers.removeIf(handler -> handler instanceof RunnableHandler && ((RunnableHandler) handler).getRunnable().equals(runnable));
+                if (handlers.isEmpty()) this.handlers.remove(event);
+            }
+        }
+    }
+
+    @SuppressWarnings("rawtypes")
+    public void unregister(@Nonnull final Consumer consumer) {
+        synchronized (this.handlers) {
+            Iterator<Map.Entry<Class<?>, List<AHandler>>> it = this.handlers.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<Class<?>, List<AHandler>> entry = it.next();
+                List<AHandler> handlers = entry.getValue();
+                handlers.removeIf(handler -> handler instanceof ConsumerHandler && ((ConsumerHandler) handler).getConsumer().equals(consumer));
+                if (handlers.isEmpty()) it.remove();
+            }
+        }
+    }
+
+    @SuppressWarnings("rawtypes")
+    public void unregister(@Nonnull final Consumer consumer, @Nonnull final Class<?>... events) {
+        if (events.length == 0) {
+            this.unregister(consumer);
+            return;
+        }
+        synchronized (this.handlers) {
+            for (Class<?> event : events) {
+                List<AHandler> handlers = this.handlers.get(event);
+                if (handlers == null) continue;
+                handlers.removeIf(handler -> handler instanceof ConsumerHandler && ((ConsumerHandler) handler).getConsumer().equals(consumer));
+                if (handlers.isEmpty()) this.handlers.remove(event);
+            }
         }
     }
 

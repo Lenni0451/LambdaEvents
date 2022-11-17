@@ -16,6 +16,11 @@ public class ConsumerHandler extends AHandler {
         this.consumer = consumer;
     }
 
+    @Nonnull
+    public Consumer<Object> getConsumer() {
+        return this.consumer;
+    }
+
     @Override
     public void call(Object event) {
         this.consumer.accept(event);
