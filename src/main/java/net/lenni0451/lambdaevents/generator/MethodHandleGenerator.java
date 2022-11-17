@@ -8,6 +8,8 @@ import net.lenni0451.lambdaevents.handler.RunnableHandler;
 import net.lenni0451.lambdaevents.utils.EventUtils;
 import net.lenni0451.lambdaevents.utils.LookupUtils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
@@ -16,12 +18,13 @@ public class MethodHandleGenerator implements IGenerator {
 
     private final MethodHandles.Lookup lookup;
 
-    public MethodHandleGenerator(final MethodHandles.Lookup lookup) {
+    public MethodHandleGenerator(@Nonnull final MethodHandles.Lookup lookup) {
         this.lookup = lookup;
     }
 
     @Override
-    public AHandler generate(Class<?> owner, Object instance, EventHandler annotation, Method method, Class<?> arg) {
+    @Nonnull
+    public AHandler generate(@Nonnull Class<?> owner, @Nullable Object instance, @Nonnull EventHandler annotation, @Nonnull Method method, @Nonnull Class<?> arg) {
         MethodHandle handle = this.getHandle(owner, instance, method);
         return new ConsumerHandler(owner, instance, annotation, event -> {
             try {
@@ -33,7 +36,8 @@ public class MethodHandleGenerator implements IGenerator {
     }
 
     @Override
-    public AHandler generateVirtual(Class<?> owner, Object instance, EventHandler annotation, Method method) {
+    @Nonnull
+    public AHandler generateVirtual(@Nonnull Class<?> owner, @Nullable Object instance, @Nonnull EventHandler annotation, @Nonnull Method method) {
         MethodHandle handle = this.getHandle(owner, instance, method);
         return new RunnableHandler(owner, instance, annotation, () -> {
             try {

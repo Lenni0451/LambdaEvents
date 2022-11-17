@@ -2,7 +2,7 @@ package net.lenni0451.lambdaevents;
 
 public class StopCall extends RuntimeException {
 
-    public static StopCall INSTANCE = new StopCall();
+    public static final StopCall INSTANCE = new StopCall();
 
 
     private StopCall() {

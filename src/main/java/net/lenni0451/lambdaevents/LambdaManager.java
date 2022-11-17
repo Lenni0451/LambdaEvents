@@ -24,17 +24,18 @@ public class LambdaManager {
 
     private Consumer<Throwable> exceptionHandler = Throwable::printStackTrace;
 
-    public LambdaManager(final Map<Class<?>, List<AHandler>> handlers, final Supplier<List<AHandler>> listSupplier, final IGenerator generator) {
+    public LambdaManager(@Nonnull final Map<Class<?>, List<AHandler>> handlers, @Nonnull final Supplier<List<AHandler>> listSupplier, @Nonnull final IGenerator generator) {
         this.handlers = handlers;
         this.listSupplier = listSupplier;
         this.generator = generator;
     }
 
-    public void setExceptionHandler(final Consumer<Throwable> exceptionHandler) {
+    public void setExceptionHandler(@Nonnull final Consumer<Throwable> exceptionHandler) {
         this.exceptionHandler = exceptionHandler;
     }
 
 
+    @Nonnull
     public <T> T call(@Nonnull final T event) {
         List<AHandler> handlers = this.handlers.get(event.getClass());
         if (handlers == null) return event;

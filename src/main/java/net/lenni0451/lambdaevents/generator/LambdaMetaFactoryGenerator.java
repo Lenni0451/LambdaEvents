@@ -8,6 +8,8 @@ import net.lenni0451.lambdaevents.handler.RunnableHandler;
 import net.lenni0451.lambdaevents.utils.EventUtils;
 import net.lenni0451.lambdaevents.utils.LookupUtils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -20,18 +22,20 @@ public class LambdaMetaFactoryGenerator implements IGenerator {
 
     private final MethodHandles.Lookup lookup;
 
-    public LambdaMetaFactoryGenerator(final MethodHandles.Lookup lookup) {
+    public LambdaMetaFactoryGenerator(@Nonnull final MethodHandles.Lookup lookup) {
         this.lookup = lookup;
     }
 
     @Override
-    public AHandler generate(Class<?> owner, Object instance, EventHandler annotation, Method method, Class<?> arg) {
+    @Nonnull
+    public AHandler generate(@Nonnull Class<?> owner, @Nullable Object instance, @Nonnull EventHandler annotation, @Nonnull Method method, @Nonnull Class<?> arg) {
         Consumer<Object> consumer = this.generate(owner, instance, method, Consumer.class, "accept", MethodType.methodType(void.class, Object.class));
         return new ConsumerHandler(owner, instance, annotation, consumer);
     }
 
     @Override
-    public AHandler generateVirtual(Class<?> owner, Object instance, EventHandler annotation, Method method) {
+    @Nonnull
+    public AHandler generateVirtual(@Nonnull Class<?> owner, @Nullable Object instance, @Nonnull EventHandler annotation, @Nonnull Method method) {
         Runnable runnable = this.generate(owner, instance, method, Runnable.class, "run", MethodType.methodType(void.class));
         return new RunnableHandler(owner, instance, annotation, runnable);
     }

@@ -2,6 +2,7 @@ package net.lenni0451.lambdaevents.utils;
 
 import net.lenni0451.lambdaevents.EventHandler;
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -15,7 +16,8 @@ import java.util.function.Predicate;
 
 public class EventUtils {
 
-    public static List<MethodHandler> getMethods(final Class<?> owner, final Predicate<Method> accept) {
+    @Nonnull
+    public static List<MethodHandler> getMethods(@Nonnull final Class<?> owner, @Nonnull final Predicate<Method> accept) {
         List<MethodHandler> handler = new ArrayList<>();
         for (Method method : owner.getDeclaredMethods()) {
             EventHandler annotation = method.getDeclaredAnnotation(EventHandler.class);
@@ -27,7 +29,8 @@ public class EventUtils {
         return handler;
     }
 
-    public static List<FieldHandler> getFields(final Class<?> owner, final Predicate<Field> accept) {
+    @Nonnull
+    public static List<FieldHandler> getFields(@Nonnull final Class<?> owner, @Nonnull final Predicate<Field> accept) {
         List<FieldHandler> handler = new ArrayList<>();
         for (Field field : owner.getDeclaredFields()) {
             EventHandler annotation = field.getDeclaredAnnotation(EventHandler.class);
@@ -39,7 +42,7 @@ public class EventUtils {
         return handler;
     }
 
-    public static void verify(final Class<?> owner, final EventHandler annotation, final Method method) {
+    public static void verify(@Nonnull final Class<?> owner, @Nonnull final EventHandler annotation, @Nonnull final Method method) {
         if (Modifier.isAbstract(method.getModifiers())) throw new IllegalStateException("Method '" + method.getName() + "' in class '" + owner.getName() + "' is abstract");
         if (Modifier.isNative(method.getModifiers())) throw new IllegalStateException("Method '" + method.getName() + "' in class '" + owner.getName() + "' is native");
         if (annotation.events().length == 0 && method.getParameterCount() != 1) {
@@ -50,7 +53,7 @@ public class EventUtils {
         if (!method.getReturnType().equals(void.class)) throw new IllegalStateException("Method '" + method.getName() + "' in class '" + owner.getName() + "' has a return type");
     }
 
-    public static void verify(final Class<?> owner, final EventHandler annotation, final Field field) {
+    public static void verify(@Nonnull final Class<?> owner, @Nonnull final EventHandler annotation, @Nonnull final Field field) {
         if (Runnable.class.isAssignableFrom(field.getType())) {
             if (annotation.events().length == 0) throw new IllegalStateException("Field '" + field.getName() + "' in class '" + owner.getName() + "' has no virtual events");
         } else if (Consumer.class.isAssignableFrom(field.getType())) {
@@ -69,7 +72,8 @@ public class EventUtils {
         }
     }
 
-    public static Class<?>[] getEvents(final EventHandler annotation, final Method method, final Predicate<Class<?>> accept) {
+    @Nonnull
+    public static Class<?>[] getEvents(@Nonnull final EventHandler annotation, @Nonnull final Method method, @Nonnull final Predicate<Class<?>> accept) {
         if (method.getParameterCount() == 1) {
             Class<?> param = method.getParameterTypes()[0];
             if (!accept.test(param)) return new Class[0];
@@ -79,7 +83,8 @@ public class EventUtils {
         }
     }
 
-    public static Class<?>[] getEvents(final EventHandler annotation, final Field field, final Predicate<Class<?>> accept) {
+    @Nonnull
+    public static Class<?>[] getEvents(@Nonnull final EventHandler annotation, @Nonnull final Field field, @Nonnull final Predicate<Class<?>> accept) {
         List<Class<?>> events = new ArrayList<>();
         Collections.addAll(events, annotation.events());
         if (Consumer.class.isAssignableFrom(field.getType()) && events.isEmpty()) {
@@ -92,7 +97,7 @@ public class EventUtils {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends Throwable> void sneak(final Throwable t) throws T {
+    public static <T extends Throwable> void sneak(@Nonnull final Throwable t) throws T {
         throw (T) t;
     }
 
@@ -101,15 +106,17 @@ public class EventUtils {
         private final EventHandler annotation;
         private final Method method;
 
-        private MethodHandler(final EventHandler annotation, final Method method) {
+        private MethodHandler(@Nonnull final EventHandler annotation, @Nonnull final Method method) {
             this.annotation = annotation;
             this.method = method;
         }
 
+        @Nonnull
         public EventHandler getAnnotation() {
             return this.annotation;
         }
 
+        @Nonnull
         public Method getMethod() {
             return this.method;
         }
@@ -119,15 +126,17 @@ public class EventUtils {
         private final EventHandler annotation;
         private final Field field;
 
-        private FieldHandler(final EventHandler annotation, final Field field) {
+        private FieldHandler(@Nonnull final EventHandler annotation, @Nonnull final Field field) {
             this.annotation = annotation;
             this.field = field;
         }
 
+        @Nonnull
         public EventHandler getAnnotation() {
             return this.annotation;
         }
 
+        @Nonnull
         public Field getField() {
             return this.field;
         }

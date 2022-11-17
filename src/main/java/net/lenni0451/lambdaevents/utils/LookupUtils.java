@@ -1,5 +1,6 @@
 package net.lenni0451.lambdaevents.utils;
 
+import javax.annotation.Nonnull;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
@@ -11,7 +12,8 @@ public class LookupUtils {
 
     private static final Map<ClassLoader, LookupGetterLoader> loaders = new WeakHashMap<>();
 
-    public static MethodHandles.Lookup getIn(final ClassLoader classLoader) {
+    @Nonnull
+    public static MethodHandles.Lookup getIn(@Nonnull final ClassLoader classLoader) {
         synchronized (loaders) {
             try {
                 LookupGetterLoader loader = loaders.computeIfAbsent(classLoader, LookupGetterLoader::new);
@@ -36,7 +38,8 @@ public class LookupUtils {
         }
     }
 
-    public static MethodHandles.Lookup resolveLookup(MethodHandles.Lookup lookup, final Class<?> accessed) {
+    @Nonnull
+    public static MethodHandles.Lookup resolveLookup(@Nonnull MethodHandles.Lookup lookup, @Nonnull final Class<?> accessed) {
         if (canAccess(lookup, accessed)) return lookup;
         lookup = lookup.in(accessed);
         if (canAccess(lookup, accessed)) return lookup;
@@ -47,7 +50,7 @@ public class LookupUtils {
         throw new IllegalStateException("Could not resolve lookup for " + accessed.getName());
     }
 
-    public static boolean canAccess(final MethodHandles.Lookup lookup, final Class<?> clazz) {
+    public static boolean canAccess(@Nonnull final MethodHandles.Lookup lookup, @Nonnull final Class<?> clazz) {
         return canAccess(clazz, lookup.lookupClass()) && (lookup.lookupModes() & Modifier.PRIVATE) != 0;
     }
 
@@ -58,7 +61,7 @@ public class LookupUtils {
      * @param clazz  The class that should be able to see the wanted class
      * @return If the wanted class is accessible
      */
-    public static boolean canAccess(Class<?> wanted, final Class<?> clazz) {
+    public static boolean canAccess(@Nonnull Class<?> wanted, @Nonnull final Class<?> clazz) {
         if (wanted == clazz) return true;
         while (wanted.isArray()) wanted = wanted.getComponentType();
         if (wanted.isPrimitive()) return true;
