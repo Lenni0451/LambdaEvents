@@ -1,7 +1,9 @@
 package net.lenni0451.lambdaevents;
 
 import net.lenni0451.lambdaevents.handler.ConsumerHandler;
+import net.lenni0451.lambdaevents.handler.ExceptionHandler;
 import net.lenni0451.lambdaevents.handler.RunnableHandler;
+import net.lenni0451.lambdaevents.utils.EventException;
 import net.lenni0451.lambdaevents.utils.EventUtils;
 
 import javax.annotation.Nonnull;
@@ -31,7 +33,9 @@ public class LambdaManager {
     private final Supplier<List<AHandler>> listSupplier;
     private final IGenerator generator;
 
-    private Consumer<Throwable> exceptionHandler = Throwable::printStackTrace;
+    private ExceptionHandler exceptionHandler = (handler, event, t) -> {
+        new EventException("Exception occurred in '" + event.getClass().getSimpleName() + "' handler in '" + handler.getOwner().getName() + "'", t).printStackTrace();
+    };
 
     public LambdaManager(@Nonnull final Map<Class<?>, List<AHandler>> handlers, @Nonnull final Supplier<List<AHandler>> listSupplier, @Nonnull final IGenerator generator) {
         this.handlers = handlers;
@@ -39,7 +43,7 @@ public class LambdaManager {
         this.generator = generator;
     }
 
-    public void setExceptionHandler(@Nonnull final Consumer<Throwable> exceptionHandler) {
+    public void setExceptionHandler(@Nonnull final ExceptionHandler exceptionHandler) {
         this.exceptionHandler = exceptionHandler;
     }
 
@@ -49,11 +53,14 @@ public class LambdaManager {
         List<AHandler> handlers = this.handlers.get(event.getClass());
         if (handlers == null) return event;
 
-        try {
-            for (AHandler handler : handlers) handler.call(event);
-        } catch (StopCall ignored) {
-        } catch (Throwable t) {
-            this.exceptionHandler.accept(t);
+        for (AHandler handler : handlers) {
+            try {
+                handler.call(event);
+            } catch (StopCall ignored) {
+                break;
+            } catch (Throwable t) {
+                this.exceptionHandler.handle(handler, event, t);
+            }
         }
         return event;
     }
