@@ -18,6 +18,10 @@ public class MethodHandleGenerator implements IGenerator {
 
     private final MethodHandles.Lookup lookup;
 
+    public MethodHandleGenerator() {
+        this(MethodHandles.lookup());
+    }
+
     public MethodHandleGenerator(@Nonnull final MethodHandles.Lookup lookup) {
         this.lookup = lookup;
     }

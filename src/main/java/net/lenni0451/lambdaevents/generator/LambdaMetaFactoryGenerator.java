@@ -22,6 +22,10 @@ public class LambdaMetaFactoryGenerator implements IGenerator {
 
     private final MethodHandles.Lookup lookup;
 
+    public LambdaMetaFactoryGenerator() {
+        this(MethodHandles.lookup());
+    }
+
     public LambdaMetaFactoryGenerator(@Nonnull final MethodHandles.Lookup lookup) {
         this.lookup = lookup;
     }
