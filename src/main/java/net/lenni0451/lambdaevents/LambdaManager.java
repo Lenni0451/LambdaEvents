@@ -164,18 +164,13 @@ public class LambdaManager {
 
 
     public void unregister(@Nonnull final Class<?> owner) {
-        for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner, method -> Modifier.isStatic(method.getModifiers()))) {
-            try {
-                EventUtils.verify(owner, handler.getAnnotation(), handler.getMethod());
-                for (Class<?> event : EventUtils.getEvents(handler.getAnnotation(), handler.getMethod(), e -> true)) this.unregister(event, owner);
-            } catch (Throwable ignored) {
-            }
-        }
-        for (EventUtils.FieldHandler handler : EventUtils.getFields(owner, field -> Modifier.isStatic(field.getModifiers()))) {
-            try {
-                EventUtils.verify(owner, handler.getAnnotation(), handler.getField());
-                for (Class<?> event : EventUtils.getEvents(handler.getAnnotation(), handler.getField(), e -> true)) this.unregister(event, owner);
-            } catch (Throwable ignored) {
+        synchronized (this.handlers) {
+            Iterator<Map.Entry<Class<?>, List<AHandler>>> it = this.handlers.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<Class<?>, List<AHandler>> entry = it.next();
+                List<AHandler> handlers = entry.getValue();
+                handlers.removeIf(handler -> handler.isStatic() && handler.getOwner().equals(owner));
+                if (handlers.isEmpty()) it.remove();
             }
         }
     }
@@ -191,18 +186,13 @@ public class LambdaManager {
     }
 
     public void unregister(@Nonnull final Object owner) {
-        for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner.getClass(), method -> !Modifier.isStatic(method.getModifiers()))) {
-            try {
-                EventUtils.verify(owner.getClass(), handler.getAnnotation(), handler.getMethod());
-                for (Class<?> event : EventUtils.getEvents(handler.getAnnotation(), handler.getMethod(), e -> true)) this.unregister(event, owner);
-            } catch (Throwable ignored) {
-            }
-        }
-        for (EventUtils.FieldHandler handler : EventUtils.getFields(owner.getClass(), field -> !Modifier.isStatic(field.getModifiers()))) {
-            try {
-                EventUtils.verify(owner.getClass(), handler.getAnnotation(), handler.getField());
-                for (Class<?> event : EventUtils.getEvents(handler.getAnnotation(), handler.getField(), e -> true)) this.unregister(event, owner);
-            } catch (Throwable ignored) {
+        synchronized (this.handlers) {
+            Iterator<Map.Entry<Class<?>, List<AHandler>>> it = this.handlers.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<Class<?>, List<AHandler>> entry = it.next();
+                List<AHandler> handlers = entry.getValue();
+                handlers.removeIf(handler -> !handler.isStatic() && handler.getInstance().equals(owner));
+                if (handlers.isEmpty()) it.remove();
             }
         }
     }
