@@ -18,6 +18,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+@SuppressWarnings("ALL")
 public class LambdaManager {
 
     /**
@@ -191,7 +192,6 @@ public class LambdaManager {
      * @param priority The priority of the {@link Consumer}
      * @param events   The events for which the {@link Consumer} should be registered
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public void register(@Nonnull final Consumer consumer, final int priority, @Nonnull final Class<?>... events) {
         if (events.length == 0) throw new IllegalArgumentException("No events specified");
         synchronized (this.handlers) {
@@ -223,7 +223,6 @@ public class LambdaManager {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void registerField(final Class<?> owner, final Object instance, final EventHandler annotation, final Field field, final Class<?> event) {
         synchronized (this.handlers) {
             List<AHandler> handlers = this.handlers.computeIfAbsent(event, (key) -> this.listSupplier.get());
@@ -349,7 +348,6 @@ public class LambdaManager {
      *
      * @param consumer The {@link Consumer} to unregister
      */
-    @SuppressWarnings("rawtypes")
     public void unregister(@Nonnull final Consumer consumer) {
         synchronized (this.handlers) {
             Iterator<Map.Entry<Class<?>, List<AHandler>>> it = this.handlers.entrySet().iterator();
@@ -368,7 +366,6 @@ public class LambdaManager {
      * @param consumer The {@link Consumer} to unregister
      * @param events   The events from which the {@link Consumer} should be unregistered
      */
-    @SuppressWarnings("rawtypes")
     public void unregister(@Nonnull final Consumer consumer, @Nonnull final Class<?>... events) {
         if (events.length == 0) {
             this.unregister(consumer);
