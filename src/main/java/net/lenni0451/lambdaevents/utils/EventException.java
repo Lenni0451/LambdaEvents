@@ -1,5 +1,8 @@
 package net.lenni0451.lambdaevents.utils;
 
+/**
+ * A util exception class to print event handler exceptions
+ */
 public class EventException extends Exception {
 
     public EventException(final String message, final Throwable cause) {

@@ -20,10 +20,24 @@ import java.util.function.Supplier;
 
 public class LambdaManager {
 
+    /**
+     * Create a new {@link LambdaManager} instance using {@link HashMap} and {@link ArrayList}<br>
+     * This implementation is not thread safe
+     *
+     * @param generator The {@link IGenerator} implementation which should be used
+     * @return The new {@link LambdaManager} instance
+     */
     public static LambdaManager basic(@Nonnull final IGenerator generator) {
         return new LambdaManager(new HashMap<>(), ArrayList::new, generator);
     }
 
+    /**
+     * Create a new {@link LambdaManager} instance using {@link ConcurrentHashMap} and {@link CopyOnWriteArrayList}<br>
+     * This implementation is thread safe but has a performance impact
+     *
+     * @param generator The {@link IGenerator} implementation which should be used
+     * @return The new {@link LambdaManager} instance
+     */
     public static LambdaManager threadSafe(@Nonnull final IGenerator generator) {
         return new LambdaManager(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new, generator);
     }
@@ -37,17 +51,32 @@ public class LambdaManager {
         new EventException("Exception occurred in '" + event.getClass().getSimpleName() + "' handler in '" + handler.getOwner().getName() + "'", t).printStackTrace();
     };
 
+    /**
+     * @param handlers     The map which should be used to store the event to handler mappings
+     * @param listSupplier The supplier for the list which should be used to store the handlers for an event
+     * @param generator    The {@link IGenerator} implementation which should be used
+     */
     public LambdaManager(@Nonnull final Map<Class<?>, List<AHandler>> handlers, @Nonnull final Supplier<List<AHandler>> listSupplier, @Nonnull final IGenerator generator) {
         this.handlers = handlers;
         this.listSupplier = listSupplier;
         this.generator = generator;
     }
 
+    /**
+     * @param exceptionHandler The {@link ExceptionHandler} which should be used to handle exceptions
+     */
     public void setExceptionHandler(@Nonnull final ExceptionHandler exceptionHandler) {
         this.exceptionHandler = exceptionHandler;
     }
 
 
+    /**
+     * Call all handlers for the given event
+     *
+     * @param event The event instance
+     * @param <T>   The event type
+     * @return The given event instance
+     */
     @Nonnull
     public <T> T call(@Nonnull final T event) {
         List<AHandler> handlers = this.handlers.get(event.getClass());
@@ -66,10 +95,21 @@ public class LambdaManager {
     }
 
 
+    /**
+     * Register all static event handlers in the given class
+     *
+     * @param owner The class which should be scanned for event handlers
+     */
     public void register(@Nonnull final Class<?> owner) {
         this.register(null, owner);
     }
 
+    /**
+     * Register all static event handlers for the given event in the given class
+     *
+     * @param event The event class
+     * @param owner The class which should be scanned for event handlers
+     */
     public void register(@Nullable final Class<?> event, @Nonnull final Class<?> owner) {
         for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner, method -> Modifier.isStatic(method.getModifiers()))) {
             if (event == null) this.registerMethod(owner, null, handler.getAnnotation(), handler.getMethod(), e -> true);
@@ -81,10 +121,21 @@ public class LambdaManager {
         }
     }
 
+    /**
+     * Register all non-static event handlers in the given object class
+     *
+     * @param owner The object which should be scanned for event handlers
+     */
     public void register(@Nonnull final Object owner) {
         this.register(null, owner);
     }
 
+    /**
+     * Register all non-static event handlers for the given event in the given object class
+     *
+     * @param event The event class
+     * @param owner The object which should be scanned for event handlers
+     */
     public void register(@Nullable final Class<?> event, @Nonnull final Object owner) {
         for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner.getClass(), method -> !Modifier.isStatic(method.getModifiers()))) {
             if (event == null) this.registerMethod(owner.getClass(), owner, handler.getAnnotation(), handler.getMethod(), e -> true);
@@ -96,11 +147,24 @@ public class LambdaManager {
         }
     }
 
+    /**
+     * Register a {@link Runnable} as an event handler for the given events
+     *
+     * @param runnable The {@link Runnable} which should be registered
+     * @param events   The events for which the {@link Runnable} should be registered
+     */
     public void register(@Nonnull final Runnable runnable, @Nonnull final Class<?>... events) {
-        this.register(runnable, (byte) 0, events);
+        this.register(runnable, 0, events);
     }
 
-    public void register(@Nonnull final Runnable runnable, final byte priority, @Nonnull final Class<?>... events) {
+    /**
+     * Register a {@link Runnable} as an event handler for the given events with the given priority
+     *
+     * @param runnable The {@link Runnable} which should be registered
+     * @param priority The priority of the {@link Runnable}
+     * @param events   The events for which the {@link Runnable} should be registered
+     */
+    public void register(@Nonnull final Runnable runnable, final int priority, @Nonnull final Class<?>... events) {
         if (events.length == 0) throw new IllegalArgumentException("No events specified");
         synchronized (this.handlers) {
             for (Class<?> event : events) {
@@ -110,12 +174,25 @@ public class LambdaManager {
         }
     }
 
+    /**
+     * Register a {@link Consumer} as an event handler for the given events
+     *
+     * @param consumer The {@link Consumer} which should be registered
+     * @param events   The events for which the {@link Consumer} should be registered
+     */
     public void register(@Nonnull final Consumer<?> consumer, @Nonnull final Class<?>... events) {
-        this.register(consumer, (byte) 0, events);
+        this.register(consumer, 0, events);
     }
 
+    /**
+     * Register a {@link Consumer} as an event handler for the given events with the given priority
+     *
+     * @param consumer The {@link Consumer} which should be registered
+     * @param priority The priority of the {@link Consumer}
+     * @param events   The events for which the {@link Consumer} should be registered
+     */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void register(@Nonnull final Consumer consumer, final byte priority, @Nonnull final Class<?>... events) {
+    public void register(@Nonnull final Consumer consumer, final int priority, @Nonnull final Class<?>... events) {
         if (events.length == 0) throw new IllegalArgumentException("No events specified");
         synchronized (this.handlers) {
             for (Class<?> event : events) {
@@ -163,6 +240,11 @@ public class LambdaManager {
     }
 
 
+    /**
+     * Unregister all static event handlers from the given class
+     *
+     * @param owner The class from which the static event handlers should be unregistered
+     */
     public void unregister(@Nonnull final Class<?> owner) {
         synchronized (this.handlers) {
             Iterator<Map.Entry<Class<?>, List<AHandler>>> it = this.handlers.entrySet().iterator();
@@ -175,6 +257,12 @@ public class LambdaManager {
         }
     }
 
+    /**
+     * Unregister all static event handlers for the given event from the given class
+     *
+     * @param event The event class
+     * @param owner The class from which the static event handlers should be unregistered
+     */
     public void unregister(@Nullable final Class<?> event, @Nonnull final Class<?> owner) {
         synchronized (this.handlers) {
             List<AHandler> handlers = this.handlers.get(event);
@@ -185,6 +273,11 @@ public class LambdaManager {
         }
     }
 
+    /**
+     * Unregister all non-static event handlers from the given object class
+     *
+     * @param owner The object from which the non-static event handlers should be unregistered
+     */
     public void unregister(@Nonnull final Object owner) {
         synchronized (this.handlers) {
             Iterator<Map.Entry<Class<?>, List<AHandler>>> it = this.handlers.entrySet().iterator();
@@ -197,6 +290,12 @@ public class LambdaManager {
         }
     }
 
+    /**
+     * Unregister all non-static event handlers for the given event from the given object class
+     *
+     * @param event The event class
+     * @param owner The object from which the non-static event handlers should be unregistered
+     */
     public void unregister(@Nullable final Class<?> event, @Nonnull final Object owner) {
         synchronized (this.handlers) {
             List<AHandler> handlers = this.handlers.get(event);
@@ -207,6 +306,11 @@ public class LambdaManager {
         }
     }
 
+    /**
+     * Unregister a {@link Runnable} from all events
+     *
+     * @param runnable The {@link Runnable} to unregister
+     */
     public void unregister(@Nonnull final Runnable runnable) {
         synchronized (this.handlers) {
             Iterator<Map.Entry<Class<?>, List<AHandler>>> it = this.handlers.entrySet().iterator();
@@ -219,6 +323,12 @@ public class LambdaManager {
         }
     }
 
+    /**
+     * Unregister a {@link Runnable} from the given events
+     *
+     * @param runnable The {@link Runnable} to unregister
+     * @param events   The events from which the {@link Runnable} should be unregistered
+     */
     public void unregister(@Nonnull final Runnable runnable, @Nonnull final Class<?>... events) {
         if (events.length == 0) {
             this.unregister(runnable);
@@ -234,6 +344,11 @@ public class LambdaManager {
         }
     }
 
+    /**
+     * Unregister a {@link Consumer} from all events
+     *
+     * @param consumer The {@link Consumer} to unregister
+     */
     @SuppressWarnings("rawtypes")
     public void unregister(@Nonnull final Consumer consumer) {
         synchronized (this.handlers) {
@@ -247,6 +362,12 @@ public class LambdaManager {
         }
     }
 
+    /**
+     * Unregister a {@link Consumer} from the given events
+     *
+     * @param consumer The {@link Consumer} to unregister
+     * @param events   The events from which the {@link Consumer} should be unregistered
+     */
     @SuppressWarnings("rawtypes")
     public void unregister(@Nonnull final Consumer consumer, @Nonnull final Class<?>... events) {
         if (events.length == 0) {

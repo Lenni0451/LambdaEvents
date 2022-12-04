@@ -17,15 +17,24 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.util.function.Consumer;
 
+/**
+ * The {@link IGenerator} implementation which calls the handler method using {@link LambdaMetafactory} generated {@link Runnable} and {@link Consumer}
+ */
 @SuppressWarnings("unchecked")
 public class LambdaMetaFactoryGenerator implements IGenerator {
 
     private final MethodHandles.Lookup lookup;
 
+    /**
+     * Use the {@link MethodHandles.Lookup} of the current {@link ClassLoader}
+     */
     public LambdaMetaFactoryGenerator() {
         this(MethodHandles.lookup());
     }
 
+    /**
+     * @param lookup The {@link MethodHandles.Lookup} to use
+     */
     public LambdaMetaFactoryGenerator(@Nonnull final MethodHandles.Lookup lookup) {
         this.lookup = lookup;
     }

@@ -17,6 +17,14 @@ import java.util.function.Predicate;
 
 public class EventUtils {
 
+    /**
+     * Get all methods of the given class which are annotated with {@link EventHandler}<br>
+     * This method does not verify if the methods are valid
+     *
+     * @param owner  The class to get the methods from
+     * @param accept If the method should be accepted
+     * @return The list of all found methods
+     */
     @Nonnull
     public static List<MethodHandler> getMethods(@Nonnull final Class<?> owner, @Nonnull final Predicate<Method> accept) {
         List<MethodHandler> handler = new ArrayList<>();
@@ -30,6 +38,14 @@ public class EventUtils {
         return handler;
     }
 
+    /**
+     * Get all fields of the given class which are annotated with {@link EventHandler}<br>
+     * This method does not verify if the fields are valid
+     *
+     * @param owner  The class to get the fields from
+     * @param accept If the field should be accepted
+     * @return The list of all found fields
+     */
     @Nonnull
     public static List<FieldHandler> getFields(@Nonnull final Class<?> owner, @Nonnull final Predicate<Field> accept) {
         List<FieldHandler> handler = new ArrayList<>();
@@ -43,6 +59,14 @@ public class EventUtils {
         return handler;
     }
 
+    /**
+     * Check if the given method is a valid event handler method
+     *
+     * @param owner      The owner of the method
+     * @param annotation The {@link EventHandler} annotation of the method
+     * @param method     The method to check
+     * @throws IllegalStateException If the method is not valid
+     */
     public static void verify(@Nonnull final Class<?> owner, @Nonnull final EventHandler annotation, @Nonnull final Method method) {
         if (Modifier.isAbstract(method.getModifiers())) throw new IllegalStateException("Method '" + method.getName() + "' in class '" + owner.getName() + "' is abstract");
         if (Modifier.isNative(method.getModifiers())) throw new IllegalStateException("Method '" + method.getName() + "' in class '" + owner.getName() + "' is native");
@@ -54,6 +78,13 @@ public class EventUtils {
         if (!method.getReturnType().equals(void.class)) throw new IllegalStateException("Method '" + method.getName() + "' in class '" + owner.getName() + "' has a return type");
     }
 
+    /**
+     * Check if the given field is a valid event handler field
+     *
+     * @param owner      The owner of the field
+     * @param annotation The {@link EventHandler} annotation of the field
+     * @param field      The field to check
+     */
     public static void verify(@Nonnull final Class<?> owner, @Nonnull final EventHandler annotation, @Nonnull final Field field) {
         if (Runnable.class.isAssignableFrom(field.getType())) {
             if (annotation.events().length == 0) throw new IllegalStateException("Field '" + field.getName() + "' in class '" + owner.getName() + "' has no virtual events");
@@ -73,6 +104,14 @@ public class EventUtils {
         }
     }
 
+    /**
+     * Get all events handled by the given method
+     *
+     * @param annotation The {@link EventHandler} annotation of the method
+     * @param method     The method to get the events from
+     * @param accept     If the event should be accepted
+     * @return The list of all found events
+     */
     @Nonnull
     public static Class<?>[] getEvents(@Nonnull final EventHandler annotation, @Nonnull final Method method, @Nonnull final Predicate<Class<?>> accept) {
         if (method.getParameterCount() == 1) {
@@ -84,6 +123,14 @@ public class EventUtils {
         }
     }
 
+    /**
+     * Get all events handled by the given field
+     *
+     * @param annotation The {@link EventHandler} annotation of the field
+     * @param field      The field to get the events from
+     * @param accept     If the event should be accepted
+     * @return The list of all found events
+     */
     @Nonnull
     public static Class<?>[] getEvents(@Nonnull final EventHandler annotation, @Nonnull final Field field, @Nonnull final Predicate<Class<?>> accept) {
         List<Class<?>> events = new ArrayList<>();
@@ -97,13 +144,26 @@ public class EventUtils {
         return events.stream().filter(accept).toArray(Class[]::new);
     }
 
+    /**
+     * Sneaky throw the given exception without declaring it
+     *
+     * @param t   The exception to throw
+     * @param <T> The type to confuse the compiler
+     * @throws T The given exception
+     */
     @SuppressWarnings("unchecked")
     public static <T extends Throwable> void sneak(@Nonnull final Throwable t) throws T {
         throw (T) t;
     }
 
+    /**
+     * Create a new {@link EventHandler} instance with the given priority
+     *
+     * @param priority The priority of the handler
+     * @return The new {@link EventHandler} instance
+     */
     @Nonnull
-    public static EventHandler newEventHandler(final byte priority) {
+    public static EventHandler newEventHandler(final int priority) {
         return new EventHandler() {
             @Override
             public Class<? extends Annotation> annotationType() {
@@ -111,7 +171,7 @@ public class EventUtils {
             }
 
             @Override
-            public byte priority() {
+            public int priority() {
                 return priority;
             }
 
@@ -123,6 +183,9 @@ public class EventUtils {
     }
 
 
+    /**
+     * A wrapper class for an event handler method with it's {@link EventHandler} annotation
+     */
     public static class MethodHandler {
         private final EventHandler annotation;
         private final Method method;
@@ -143,6 +206,9 @@ public class EventUtils {
         }
     }
 
+    /**
+     * A wrapper class for an event handler field with it's {@link EventHandler} annotation
+     */
     public static class FieldHandler {
         private final EventHandler annotation;
         private final Field field;
