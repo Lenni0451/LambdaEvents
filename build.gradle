@@ -1,6 +1,7 @@
 plugins {
     id "java-library"
     id "maven-publish"
+    id "me.champeau.jmh" version "0.7.0"
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
@@ -16,6 +17,10 @@ repositories {
 
 dependencies {
     implementation "com.google.code.findbugs:jsr305:3.0.2"
+
+    jmh "org.openjdk.jmh:jmh-core:1.36"
+    jmh "org.openjdk.jmh:jmh-generator-annprocess:1.36"
+    jmhAnnotationProcessor "org.openjdk.jmh:jmh-generator-annprocess:1.36"
 }
 
 java {
