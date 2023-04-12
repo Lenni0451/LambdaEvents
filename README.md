@@ -95,8 +95,9 @@ You can pass any object as an event. Remember that the class is used to identify
 
 ### Registering
 LambdaEvents has 6 different ways to listen to events:
+
 | Type                    | Description                                                |
-| ----------------------- | ---------------------------------------------------------- |
+|-------------------------|------------------------------------------------------------|
 | Static methods          | A static method annotated with `@EventHandler`             |
 | Virtual methods         | A virtual/non-static method annotated with `@EventHandler` |
 | (static) Runnable field | A runnable field annotated with `@EventHandler`            |
@@ -111,12 +112,12 @@ Runnable fields or Consumer fields without type parameters require the event typ
 Methods are required to not have any parameters or to have the event type as a parameter. Methods without parameters require the event type(s) to be added to the `@EventHandler(events = {Event.class})` annotation.\
 Independent Runnables or Consumers require the event type(s) to be passed to the `register` method.
 #### Static event handler
-To register static event handler (methods and fields) you need to call the `register` method of the `LambdaManager` instance passing the owner class.\
+To register static event handler (methods and fields) you need to call the `register` method of the `LambdaManager` instance passing the owner class.
 ```java
 eventManager.register(Example.class);
 ```
 #### Virtual event handler
-To register virtual event handler (methods and fields) you need to call the `register` method of the `LambdaManager` instance passing the owner object.\
+To register virtual event handler (methods and fields) you need to call the `register` method of the `LambdaManager` instance passing the owner object.
 ```java
 eventManager.register(new Example());
 ```
@@ -197,8 +198,9 @@ By default the `ExceptionHandler` will print the stack trace of the exception to
 ## JMH Benchmark
 The Benchmark shows the average time it takes to call an event 100_000 times.\
 The lower the time is, the better the performance of the generator is.
+
 | Benchmark                           | Mode | Cnt | Score       | Error      | Units |
-| ----------------------------------- | ---- | --- | ----------- | ---------- | ----- |
+|-------------------------------------|------|-----|-------------|------------|-------|
 | CallBenchmark.callLambdaMetaFactory | avgt | 4   | 2092914,322 | 145474,182 | ns/op |
 | CallBenchmark.callMethodHandles     | avgt | 4   | 3568765,480 | 91089,783  | ns/op |
 | CallBenchmark.callReflection        | avgt | 4   | 2597966,622 | 122017,888 | ns/op |
