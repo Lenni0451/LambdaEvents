@@ -51,6 +51,7 @@ public class LambdaManager {
     private ExceptionHandler exceptionHandler = (handler, event, t) -> {
         new EventException("Exception occurred in '" + event.getClass().getSimpleName() + "' handler in '" + handler.getOwner().getName() + "'", t).printStackTrace();
     };
+    private boolean registerSuperHandler = false;
 
     /**
      * @param handlers     The map which should be used to store the event to handler mappings
@@ -68,6 +69,15 @@ public class LambdaManager {
      */
     public void setExceptionHandler(@Nonnull final ExceptionHandler exceptionHandler) {
         this.exceptionHandler = exceptionHandler;
+    }
+
+    /**
+     * Register all event handlers from super classes.
+     *
+     * @param registerSuperHandler If super classes should be scanned for event handlers
+     */
+    public void setRegisterSuperHandler(final boolean registerSuperHandler) {
+        this.registerSuperHandler = registerSuperHandler;
     }
 
 
@@ -112,11 +122,11 @@ public class LambdaManager {
      * @param owner The class which should be scanned for event handlers
      */
     public void register(@Nullable final Class<?> event, @Nonnull final Class<?> owner) {
-        for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner, method -> Modifier.isStatic(method.getModifiers()))) {
+        for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner, method -> Modifier.isStatic(method.getModifiers()), this.registerSuperHandler)) {
             if (event == null) this.registerMethod(owner, null, handler.getAnnotation(), handler.getMethod(), e -> true);
             else this.registerMethod(owner, null, handler.getAnnotation(), handler.getMethod(), e -> e.equals(event));
         }
-        for (EventUtils.FieldHandler handler : EventUtils.getFields(owner, field -> Modifier.isStatic(field.getModifiers()))) {
+        for (EventUtils.FieldHandler handler : EventUtils.getFields(owner, field -> Modifier.isStatic(field.getModifiers()), this.registerSuperHandler)) {
             if (event == null) this.registerField(owner, null, handler.getAnnotation(), handler.getField(), e -> true);
             else this.registerField(owner, null, handler.getAnnotation(), handler.getField(), e -> e.equals(event));
         }
@@ -138,11 +148,11 @@ public class LambdaManager {
      * @param owner The object which should be scanned for event handlers
      */
     public void register(@Nullable final Class<?> event, @Nonnull final Object owner) {
-        for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner.getClass(), method -> !Modifier.isStatic(method.getModifiers()))) {
+        for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner.getClass(), method -> !Modifier.isStatic(method.getModifiers()), this.registerSuperHandler)) {
             if (event == null) this.registerMethod(owner.getClass(), owner, handler.getAnnotation(), handler.getMethod(), e -> true);
             else this.registerMethod(owner.getClass(), owner, handler.getAnnotation(), handler.getMethod(), e -> e.equals(event));
         }
-        for (EventUtils.FieldHandler handler : EventUtils.getFields(owner.getClass(), field -> !Modifier.isStatic(field.getModifiers()))) {
+        for (EventUtils.FieldHandler handler : EventUtils.getFields(owner.getClass(), field -> !Modifier.isStatic(field.getModifiers()), this.registerSuperHandler)) {
             if (event == null) this.registerField(owner.getClass(), owner, handler.getAnnotation(), handler.getField(), e -> true);
             else this.registerField(owner.getClass(), owner, handler.getAnnotation(), handler.getField(), e -> e.equals(event));
         }

@@ -21,20 +21,24 @@ public class EventUtils {
      * Get all methods of the given class which are annotated with {@link EventHandler}<br>
      * This method does not verify if the methods are valid
      *
-     * @param owner  The class to get the methods from
-     * @param accept If the method should be accepted
+     * @param owner                The class to get the methods from
+     * @param accept               If the method should be accepted
+     * @param registerSuperHandler If the super methods should be registered
      * @return The list of all found methods
      */
     @Nonnull
-    public static List<MethodHandler> getMethods(@Nonnull final Class<?> owner, @Nonnull final Predicate<Method> accept) {
+    public static List<MethodHandler> getMethods(@Nonnull final Class<?> owner, @Nonnull final Predicate<Method> accept, final boolean registerSuperHandler) {
         List<MethodHandler> handler = new ArrayList<>();
-        for (Method method : owner.getDeclaredMethods()) {
-            EventHandler annotation = method.getDeclaredAnnotation(EventHandler.class);
-            if (annotation == null) continue;
-            if (!accept.test(method)) continue;
+        Class<?> current = owner;
+        do {
+            for (Method method : current.getDeclaredMethods()) {
+                EventHandler annotation = method.getDeclaredAnnotation(EventHandler.class);
+                if (annotation == null) continue;
+                if (!accept.test(method)) continue;
 
-            handler.add(new MethodHandler(annotation, method));
-        }
+                handler.add(new MethodHandler(annotation, method));
+            }
+        } while ((current = current.getSuperclass()) != null && registerSuperHandler);
         return handler;
     }
 
@@ -42,20 +46,24 @@ public class EventUtils {
      * Get all fields of the given class which are annotated with {@link EventHandler}<br>
      * This method does not verify if the fields are valid
      *
-     * @param owner  The class to get the fields from
-     * @param accept If the field should be accepted
+     * @param owner                The class to get the fields from
+     * @param accept               If the field should be accepted
+     * @param registerSuperHandler If the super fields should be registered
      * @return The list of all found fields
      */
     @Nonnull
-    public static List<FieldHandler> getFields(@Nonnull final Class<?> owner, @Nonnull final Predicate<Field> accept) {
+    public static List<FieldHandler> getFields(@Nonnull final Class<?> owner, @Nonnull final Predicate<Field> accept, final boolean registerSuperHandler) {
         List<FieldHandler> handler = new ArrayList<>();
-        for (Field field : owner.getDeclaredFields()) {
-            EventHandler annotation = field.getDeclaredAnnotation(EventHandler.class);
-            if (annotation == null) continue;
-            if (!accept.test(field)) continue;
+        Class<?> current = owner;
+        do {
+            for (Field field : current.getDeclaredFields()) {
+                EventHandler annotation = field.getDeclaredAnnotation(EventHandler.class);
+                if (annotation == null) continue;
+                if (!accept.test(field)) continue;
 
-            handler.add(new FieldHandler(annotation, field));
-        }
+                handler.add(new FieldHandler(annotation, field));
+            }
+        } while ((current = current.getSuperclass()) != null && registerSuperHandler);
         return handler;
     }
 
