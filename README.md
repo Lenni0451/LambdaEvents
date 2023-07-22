@@ -80,6 +80,7 @@ The following implementations are provided:
  - ReflectionGenerator
  - MethodHandleGenerator
  - LambdaMetaFactoryGenerator
+ - ASMGenerator (Requires [Reflect](https://github.com/Lenni0451/Reflect))
 
 Check out the JMH Benchmark section for performance comparisons.
 
@@ -197,10 +198,12 @@ By default the `ExceptionHandler` will print the stack trace of the exception to
 
 ## JMH Benchmark
 The Benchmark shows the average time it takes to call an event 100_000 times.\
-The lower the time is, the better the performance of the generator is.
+The lower the time is, the better the call performance of the generator is.\
+The tests were run using Java 17 and may vary on other Java versions.
 
 | Benchmark                           | Mode | Cnt | Score       | Error      | Units |
 |-------------------------------------|------|-----|-------------|------------|-------|
-| CallBenchmark.callLambdaMetaFactory | avgt | 4   | 2092914,322 | 145474,182 | ns/op |
-| CallBenchmark.callMethodHandles     | avgt | 4   | 3568765,480 | 91089,783  | ns/op |
-| CallBenchmark.callReflection        | avgt | 4   | 2597966,622 | 122017,888 | ns/op |
+| CallBenchmark.callASM               | avgt | 4   | 1178682,007 | 22908,614  | ns/op |
+| CallBenchmark.callLambdaMetaFactory | avgt | 4   | 1587287,234 | 307573,307 | ns/op |
+| CallBenchmark.callMethodHandles     | avgt | 4   | 1829005,191 | 77826,768  | ns/op |
+| CallBenchmark.callReflection        | avgt | 4   | 1476969,525 | 59086,732  | ns/op |

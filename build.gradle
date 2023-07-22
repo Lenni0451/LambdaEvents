@@ -18,6 +18,7 @@ repositories {
 
 dependencies {
     implementation "com.google.code.findbugs:jsr305:3.0.2"
+    implementation "net.lenni0451:Reflect:1.2.1"
 
     jmh "org.openjdk.jmh:jmh-core:1.36"
     jmh "org.openjdk.jmh:jmh-generator-annprocess:1.36"
@@ -31,6 +32,10 @@ java {
 
 artifacts {
     archives javadocJar, sourcesJar
+}
+
+jmh {
+    jvm = 'C:/Program Files/Java/jdk-17.0.5/bin/java.exe'
 }
 
 publishing {

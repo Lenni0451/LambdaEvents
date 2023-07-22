@@ -1,6 +1,7 @@
 package net.lenni0451.benchmark;
 
 import net.lenni0451.lambdaevents.LambdaManager;
+import net.lenni0451.lambdaevents.generator.ASMGenerator;
 import net.lenni0451.lambdaevents.generator.LambdaMetaFactoryGenerator;
 import net.lenni0451.lambdaevents.generator.MethodHandleGenerator;
 import net.lenni0451.lambdaevents.generator.ReflectionGenerator;
@@ -20,6 +21,7 @@ public class CallBenchmark {
     private LambdaManager reflection;
     private LambdaManager methodHandles;
     private LambdaManager lambdaMetaFactory;
+    private LambdaManager asm;
 
     @Setup
     public void setup() {
@@ -27,10 +29,12 @@ public class CallBenchmark {
         this.reflection = LambdaManager.basic(new ReflectionGenerator());
         this.methodHandles = LambdaManager.basic(new MethodHandleGenerator());
         this.lambdaMetaFactory = LambdaManager.basic(new LambdaMetaFactoryGenerator());
+        this.asm = LambdaManager.basic(new ASMGenerator());
 
         this.reflection.register(listener);
         this.methodHandles.register(listener);
         this.lambdaMetaFactory.register(listener);
+        this.asm.register(listener);
     }
 
     @Benchmark
@@ -52,6 +56,13 @@ public class CallBenchmark {
     @Fork(value = 1, warmups = 1)
     public void callLambdaMetaFactory(Blackhole blackhole) {
         for (int i = 0; i < ITERATIONS; i++) this.lambdaMetaFactory.call(blackhole);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    @Fork(value = 1, warmups = 1)
+    public void callASM(Blackhole blackhole) {
+        for (int i = 0; i < ITERATIONS; i++) this.asm.call(blackhole);
     }
 
 }
