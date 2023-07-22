@@ -5,15 +5,13 @@ import net.lenni0451.lambdaevents.LambdaManager;
 import net.lenni0451.lambdaevents.generator.LambdaMetaFactoryGenerator;
 
 import java.lang.invoke.MethodHandles;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Test {
 
     public static void main(String[] args) throws Throwable {
-//        LambdaManager lm = new LambdaManager(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new, new ReflectionGenerator());
-//        LambdaManager lm = new LambdaManager(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new, new MethodHandleGenerator(MethodHandles.lookup()));
-        LambdaManager lm = new LambdaManager(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new, new LambdaMetaFactoryGenerator(MethodHandles.lookup()));
+//        LambdaManager lm = LambdaManager.threadSafe(new ReflectionGenerator());
+//        LambdaManager lm = LambdaManager.threadSafe(new MethodHandleGenerator(MethodHandles.lookup()));
+        LambdaManager lm = LambdaManager.threadSafe(new LambdaMetaFactoryGenerator(MethodHandles.lookup()));
         Test test = new Test();
 
         lm.register(test);

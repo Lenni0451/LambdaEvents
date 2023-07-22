@@ -7,8 +7,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ClassLoadTest {
 
@@ -30,9 +28,9 @@ public class ClassLoadTest {
         Class<?> clazz = (Class<?>) define.invoke(cl, className, baos.toByteArray());
         Object instance = clazz.getDeclaredConstructor().newInstance();
 
-        LambdaManager lm = new LambdaManager(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new, new LambdaMetaFactoryGenerator(MethodHandles.lookup()));
-//        LambdaManager lm = new LambdaManager(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new, new MethodHandleGenerator(MethodHandles.lookup()));
-//        LambdaManager lm = new LambdaManager(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new, new ReflectionGenerator());
+        LambdaManager lm = LambdaManager.threadSafe(new LambdaMetaFactoryGenerator(MethodHandles.lookup()));
+//        LambdaManager lm = LambdaManager.threadSafe(new MethodHandleGenerator(MethodHandles.lookup()));
+//        LambdaManager lm = LambdaManager.threadSafe(new ReflectionGenerator());
 
 //        lm.register(new Test());
         lm.register(clazz);

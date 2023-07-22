@@ -7,14 +7,12 @@ import sun.misc.Unsafe;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class InternalLookupTest {
 
     public static void main(String[] args) throws Throwable {
-//        LambdaManager lm = new LambdaManager(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new, new LambdaMetaFactoryGenerator(MethodHandles.lookup()));
-        LambdaManager lm = new LambdaManager(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new, new LambdaMetaFactoryGenerator(getInternalLookup()));
+//        LambdaManager lm = LambdaManager.threadSafe(new LambdaMetaFactoryGenerator(MethodHandles.lookup()));
+        LambdaManager lm = LambdaManager.threadSafe(new LambdaMetaFactoryGenerator(getInternalLookup()));
         lm.register(TestListener.class);
         lm.call("Test");
     }

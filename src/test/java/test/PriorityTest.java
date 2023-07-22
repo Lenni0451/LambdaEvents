@@ -4,13 +4,10 @@ import net.lenni0451.lambdaevents.EventHandler;
 import net.lenni0451.lambdaevents.LambdaManager;
 import net.lenni0451.lambdaevents.generator.ReflectionGenerator;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 public class PriorityTest {
 
     public static void main(String[] args) {
-        LambdaManager lm = new LambdaManager(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new, new ReflectionGenerator());
+        LambdaManager lm = LambdaManager.threadSafe(new ReflectionGenerator());
         lm.register(Class3.class);
         lm.register(Class2.class);
         lm.register(Class1.class);

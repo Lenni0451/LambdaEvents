@@ -4,8 +4,6 @@ import net.lenni0451.lambdaevents.EventHandler;
 import net.lenni0451.lambdaevents.LambdaManager;
 import net.lenni0451.lambdaevents.generator.ReflectionGenerator;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 @SuppressWarnings("rawtypes")
@@ -30,7 +28,7 @@ public class FieldTest {
     public final Runnable virtualRunnable1 = () -> System.out.println("Virtual Runnable");
 
     public static void main(String[] args) {
-        LambdaManager lm = new LambdaManager(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new, new ReflectionGenerator());
+        LambdaManager lm = LambdaManager.threadSafe(new ReflectionGenerator());
         FieldTest test = new FieldTest();
 
         lm.register(FieldTest.class);

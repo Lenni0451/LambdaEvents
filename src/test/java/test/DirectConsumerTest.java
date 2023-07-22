@@ -3,14 +3,12 @@ package test;
 import net.lenni0451.lambdaevents.LambdaManager;
 import net.lenni0451.lambdaevents.generator.ReflectionGenerator;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 public class DirectConsumerTest {
 
     public static void main(String[] args) {
-        LambdaManager lm = new LambdaManager(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new, new ReflectionGenerator());
+        LambdaManager lm = LambdaManager.threadSafe(new ReflectionGenerator());
         Consumer<String> consumer = s -> System.out.println("Hello " + s);
 
         lm.register(consumer, (byte) 0, String.class);
