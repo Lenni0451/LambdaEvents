@@ -9,15 +9,15 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 /**
- * Various utils for {@link MethodHandles.Lookup}
+ * Various utils for {@link MethodHandles.Lookup}.
  */
 public class LookupUtils {
 
     private static final Map<ClassLoader, LookupGetterLoader> loaders = new WeakHashMap<>();
 
     /**
-     * Get a {@link MethodHandles.Lookup} in the given {@link ClassLoader}<br>
-     * This method defines a new class in the given {@link ClassLoader} to get the {@link MethodHandles.Lookup}
+     * Get a {@link MethodHandles.Lookup} in the given {@link ClassLoader}.<br>
+     * This method defines a new class in the given {@link ClassLoader} to get the {@link MethodHandles.Lookup}.
      *
      * @param classLoader The class loader to get the lookup in
      * @return The lookup
@@ -49,7 +49,7 @@ public class LookupUtils {
     }
 
     /**
-     * Resolve a lookup to access a given class
+     * Resolve a lookup to access a given class.
      *
      * @param lookup   The lookup to resolve
      * @param accessed The class to access
@@ -69,7 +69,7 @@ public class LookupUtils {
     }
 
     /**
-     * Check if the given lookup can access the given class
+     * Check if the given lookup can access the given class.
      *
      * @param lookup The lookup to check
      * @param clazz  The class to check

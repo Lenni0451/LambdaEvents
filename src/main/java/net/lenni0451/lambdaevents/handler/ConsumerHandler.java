@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 /**
- * The {@link AHandler} implementation for {@link Consumer} events with an event parameter
+ * The {@link AHandler} implementation for {@link Consumer} events with an event parameter.
  */
 public class ConsumerHandler extends AHandler {
 
@@ -33,9 +33,6 @@ public class ConsumerHandler extends AHandler {
         return this.consumer;
     }
 
-    /**
-     * @param event The event instance
-     */
     @Override
     public void call(Object event) {
         this.consumer.accept(event);

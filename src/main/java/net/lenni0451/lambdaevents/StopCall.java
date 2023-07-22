@@ -1,12 +1,12 @@
 package net.lenni0451.lambdaevents;
 
 /**
- * Stop the execution of the event call and prevent the following handlers from being invoked
+ * Stop the execution of the event call and prevent the following handlers from being invoked.
  */
 public class StopCall extends RuntimeException {
 
     /**
-     * The instance of this exception without a stacktrace
+     * The instance of this exception without a stacktrace.
      */
     public static final StopCall INSTANCE = new StopCall();
 

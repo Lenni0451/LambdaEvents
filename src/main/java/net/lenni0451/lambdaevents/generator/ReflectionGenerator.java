@@ -11,7 +11,7 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 
 /**
- * The {@link IGenerator} implementation which calls the handler method using reflection
+ * The {@link IGenerator} implementation which calls the handler method using reflection.
  */
 public class ReflectionGenerator implements IGenerator {
 

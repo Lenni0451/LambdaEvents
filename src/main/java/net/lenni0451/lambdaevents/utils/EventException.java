@@ -1,7 +1,8 @@
 package net.lenni0451.lambdaevents.utils;
 
 /**
- * A util exception class to print event handler exceptions
+ * A util exception class to print event handler exceptions.<br>
+ * The stacktrace is removed to prevent spamming the console.
  */
 public class EventException extends Exception {
 

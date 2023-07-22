@@ -7,7 +7,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * The {@link AHandler} implementation for {@link Runnable} events without an event parameter
+ * The {@link AHandler} implementation for {@link Runnable} events without an event parameter.
  */
 public class RunnableHandler extends AHandler {
 
@@ -32,9 +32,6 @@ public class RunnableHandler extends AHandler {
         return this.runnable;
     }
 
-    /**
-     * @param event The event instance
-     */
     @Override
     public void call(Object event) {
         this.runnable.run();

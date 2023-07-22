@@ -22,8 +22,8 @@ import java.util.function.Supplier;
 public class LambdaManager {
 
     /**
-     * Create a new {@link LambdaManager} instance using {@link HashMap} and {@link ArrayList}<br>
-     * This implementation is not thread safe
+     * Create a new {@link LambdaManager} instance using a {@link HashMap} and {@link ArrayList}.<br>
+     * This implementation is not thread safe.
      *
      * @param generator The {@link IGenerator} implementation which should be used
      * @return The new {@link LambdaManager} instance
@@ -33,8 +33,8 @@ public class LambdaManager {
     }
 
     /**
-     * Create a new {@link LambdaManager} instance using {@link ConcurrentHashMap} and {@link CopyOnWriteArrayList}<br>
-     * This implementation is thread safe but has a performance impact
+     * Create a new {@link LambdaManager} instance using a {@link ConcurrentHashMap} and {@link CopyOnWriteArrayList}.<br>
+     * This implementation is thread safe but has a performance impact.
      *
      * @param generator The {@link IGenerator} implementation which should be used
      * @return The new {@link LambdaManager} instance
@@ -65,6 +65,8 @@ public class LambdaManager {
     }
 
     /**
+     * Set the {@link ExceptionHandler} which is used to handle thrown exceptions in event handlers.
+     *
      * @param exceptionHandler The {@link ExceptionHandler} which should be used to handle exceptions
      */
     public void setExceptionHandler(@Nonnull final ExceptionHandler exceptionHandler) {
@@ -82,7 +84,7 @@ public class LambdaManager {
 
 
     /**
-     * Call all handlers for the given event
+     * Call all handlers for the given event.
      *
      * @param event The event instance
      * @param <T>   The event type
@@ -107,19 +109,19 @@ public class LambdaManager {
 
 
     /**
-     * Register all static event handlers in the given class
+     * Register all static event handlers in the given class.
      *
-     * @param owner The class which should be scanned for event handlers
+     * @param owner The class which should be scanned
      */
     public void register(@Nonnull final Class<?> owner) {
         this.register(null, owner);
     }
 
     /**
-     * Register all static event handlers for the given event in the given class
+     * Register all static event handlers for the given event in the given class.
      *
      * @param event The event class
-     * @param owner The class which should be scanned for event handlers
+     * @param owner The class which should be scanned
      */
     public void register(@Nullable final Class<?> event, @Nonnull final Class<?> owner) {
         for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner, method -> Modifier.isStatic(method.getModifiers()), this.registerSuperHandler)) {
@@ -133,19 +135,19 @@ public class LambdaManager {
     }
 
     /**
-     * Register all non-static event handlers in the given object class
+     * Register all non-static event handlers in the given object's class.
      *
-     * @param owner The object which should be scanned for event handlers
+     * @param owner The object which should be scanned
      */
     public void register(@Nonnull final Object owner) {
         this.register(null, owner);
     }
 
     /**
-     * Register all non-static event handlers for the given event in the given object class
+     * Register all non-static event handlers for the given event in the given object's class.
      *
      * @param event The event class
-     * @param owner The object which should be scanned for event handlers
+     * @param owner The object which should be scanned
      */
     public void register(@Nullable final Class<?> event, @Nonnull final Object owner) {
         for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner.getClass(), method -> !Modifier.isStatic(method.getModifiers()), this.registerSuperHandler)) {
@@ -159,7 +161,7 @@ public class LambdaManager {
     }
 
     /**
-     * Register a {@link Runnable} as an event handler for the given events
+     * Register a {@link Runnable} as an event handler for the given events.
      *
      * @param runnable The {@link Runnable} which should be registered
      * @param events   The events for which the {@link Runnable} should be registered
@@ -169,7 +171,7 @@ public class LambdaManager {
     }
 
     /**
-     * Register a {@link Runnable} as an event handler for the given events with the given priority
+     * Register a {@link Runnable} as an event handler for the given events with the given priority.
      *
      * @param runnable The {@link Runnable} which should be registered
      * @param priority The priority of the {@link Runnable}
@@ -186,7 +188,9 @@ public class LambdaManager {
     }
 
     /**
-     * Register a {@link Consumer} as an event handler for the given events
+     * Register a {@link Consumer} as an event handler for the given events.<br>
+     * Be aware that the {@link Consumer} will be called with the event instance as parameter.
+     * When using wrong type args this will result in a {@link ClassCastException}.
      *
      * @param consumer The {@link Consumer} which should be registered
      * @param events   The events for which the {@link Consumer} should be registered
@@ -196,7 +200,9 @@ public class LambdaManager {
     }
 
     /**
-     * Register a {@link Consumer} as an event handler for the given events with the given priority
+     * Register a {@link Consumer} as an event handler for the given events with the given priority.<br>
+     * Be aware that the {@link Consumer} will be called with the event instance as parameter.
+     * When using wrong type args this will result in a {@link ClassCastException}.
      *
      * @param consumer The {@link Consumer} which should be registered
      * @param priority The priority of the {@link Consumer}
@@ -250,7 +256,7 @@ public class LambdaManager {
 
 
     /**
-     * Unregister all static event handlers from the given class
+     * Unregister all static event handlers from the given class.
      *
      * @param owner The class from which the static event handlers should be unregistered
      */
@@ -267,7 +273,7 @@ public class LambdaManager {
     }
 
     /**
-     * Unregister all static event handlers for the given event from the given class
+     * Unregister all static event handlers for the given event from the given class.
      *
      * @param event The event class
      * @param owner The class from which the static event handlers should be unregistered
@@ -283,7 +289,7 @@ public class LambdaManager {
     }
 
     /**
-     * Unregister all non-static event handlers from the given object class
+     * Unregister all non-static event handlers from the given object's class.
      *
      * @param owner The object from which the non-static event handlers should be unregistered
      */
@@ -300,7 +306,7 @@ public class LambdaManager {
     }
 
     /**
-     * Unregister all non-static event handlers for the given event from the given object class
+     * Unregister all non-static event handlers for the given event from the given object's class.
      *
      * @param event The event class
      * @param owner The object from which the non-static event handlers should be unregistered
@@ -316,7 +322,7 @@ public class LambdaManager {
     }
 
     /**
-     * Unregister a {@link Runnable} from all events
+     * Unregister a {@link Runnable} from all events.
      *
      * @param runnable The {@link Runnable} to unregister
      */
@@ -333,7 +339,7 @@ public class LambdaManager {
     }
 
     /**
-     * Unregister a {@link Runnable} from the given events
+     * Unregister a {@link Runnable} from the given events.
      *
      * @param runnable The {@link Runnable} to unregister
      * @param events   The events from which the {@link Runnable} should be unregistered
@@ -354,7 +360,7 @@ public class LambdaManager {
     }
 
     /**
-     * Unregister a {@link Consumer} from all events
+     * Unregister a {@link Consumer} from all events.
      *
      * @param consumer The {@link Consumer} to unregister
      */
@@ -371,7 +377,7 @@ public class LambdaManager {
     }
 
     /**
-     * Unregister a {@link Consumer} from the given events
+     * Unregister a {@link Consumer} from the given events.
      *
      * @param consumer The {@link Consumer} to unregister
      * @param events   The events from which the {@link Consumer} should be unregistered

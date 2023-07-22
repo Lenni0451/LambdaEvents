@@ -15,14 +15,14 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
 /**
- * The {@link IGenerator} implementation which calls the handler method using method handles
+ * The {@link IGenerator} implementation which calls the handler method using method handles.
  */
 public class MethodHandleGenerator implements IGenerator {
 
     private final MethodHandles.Lookup lookup;
 
     /**
-     * Use the {@link MethodHandles.Lookup} of the current {@link ClassLoader}
+     * Use the {@link MethodHandles.Lookup} of the current {@link ClassLoader}.
      */
     public MethodHandleGenerator() {
         this(MethodHandles.lookup());

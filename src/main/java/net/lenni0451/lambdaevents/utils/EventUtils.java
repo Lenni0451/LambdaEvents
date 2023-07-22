@@ -18,8 +18,8 @@ import java.util.function.Predicate;
 public class EventUtils {
 
     /**
-     * Get all methods of the given class which are annotated with {@link EventHandler}<br>
-     * This method does not verify if the methods are valid
+     * Get all methods of the given class which are annotated with {@link EventHandler}.<br>
+     * This method does not verify if the methods are valid.
      *
      * @param owner                The class to get the methods from
      * @param accept               If the method should be accepted
@@ -43,8 +43,8 @@ public class EventUtils {
     }
 
     /**
-     * Get all fields of the given class which are annotated with {@link EventHandler}<br>
-     * This method does not verify if the fields are valid
+     * Get all fields of the given class which are annotated with {@link EventHandler}.<br>
+     * This method does not verify if the fields are valid.
      *
      * @param owner                The class to get the fields from
      * @param accept               If the field should be accepted
@@ -68,7 +68,7 @@ public class EventUtils {
     }
 
     /**
-     * Check if the given method is a valid event handler method
+     * Check if the given method is a valid event handler method.
      *
      * @param owner      The owner of the method
      * @param annotation The {@link EventHandler} annotation of the method
@@ -87,7 +87,7 @@ public class EventUtils {
     }
 
     /**
-     * Check if the given field is a valid event handler field
+     * Check if the given field is a valid event handler field.
      *
      * @param owner      The owner of the field
      * @param annotation The {@link EventHandler} annotation of the field
@@ -113,7 +113,7 @@ public class EventUtils {
     }
 
     /**
-     * Get all events handled by the given method
+     * Get all events handled by the given method.
      *
      * @param annotation The {@link EventHandler} annotation of the method
      * @param method     The method to get the events from
@@ -132,7 +132,7 @@ public class EventUtils {
     }
 
     /**
-     * Get all events handled by the given field
+     * Get all events handled by the given field.
      *
      * @param annotation The {@link EventHandler} annotation of the field
      * @param field      The field to get the events from
@@ -153,7 +153,7 @@ public class EventUtils {
     }
 
     /**
-     * Sneaky throw the given exception without declaring it
+     * Sneaky throw the given exception without declaring it.
      *
      * @param t   The exception to throw
      * @param <T> The type to confuse the compiler
@@ -165,7 +165,7 @@ public class EventUtils {
     }
 
     /**
-     * Create a new {@link EventHandler} instance with the given priority
+     * Create a new {@link EventHandler} instance with the given priority.
      *
      * @param priority The priority of the handler
      * @return The new {@link EventHandler} instance
@@ -192,7 +192,7 @@ public class EventUtils {
 
 
     /**
-     * A wrapper class for an event handler method with it's {@link EventHandler} annotation
+     * A wrapper class for an event handler method with it's {@link EventHandler} annotation.
      */
     public static class MethodHandler {
         private final EventHandler annotation;
@@ -215,7 +215,7 @@ public class EventUtils {
     }
 
     /**
-     * A wrapper class for an event handler field with it's {@link EventHandler} annotation
+     * A wrapper class for an event handler field with it's {@link EventHandler} annotation.
      */
     public static class FieldHandler {
         private final EventHandler annotation;
