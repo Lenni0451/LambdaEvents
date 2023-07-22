@@ -183,6 +183,7 @@ public class LambdaManager {
             for (Class<?> event : events) {
                 List<AHandler> handlers = this.handlers.computeIfAbsent(event, (key) -> this.listSupplier.get());
                 handlers.add(new RunnableHandler(runnable.getClass(), null, EventUtils.newEventHandler(priority), runnable));
+                this.checkCallChain(event, handlers);
             }
         }
     }
@@ -214,6 +215,7 @@ public class LambdaManager {
             for (Class<?> event : events) {
                 List<AHandler> handlers = this.handlers.computeIfAbsent(event, (key) -> this.listSupplier.get());
                 handlers.add(new ConsumerHandler(consumer.getClass(), null, EventUtils.newEventHandler(priority), consumer));
+                this.checkCallChain(event, handlers);
             }
         }
     }
@@ -235,7 +237,7 @@ public class LambdaManager {
             if (virtual) handler = this.generator.generateVirtual(owner, instance, annotation, method);
             else handler = this.generator.generate(owner, instance, annotation, method, event);
             handlers.add(handler);
-            this.resortHandlers(handlers);
+            this.checkCallChain(event, handlers);
         }
     }
 
@@ -250,7 +252,7 @@ public class LambdaManager {
                 throw new RuntimeException("Failed to register field '" + field.getName() + "' in class '" + owner.getName() + "'", t);
             }
             handlers.add(handler);
-            this.resortHandlers(handlers);
+            this.checkCallChain(event, handlers);
         }
     }
 
@@ -262,13 +264,15 @@ public class LambdaManager {
      */
     public void unregister(@Nonnull final Class<?> owner) {
         synchronized (this.handlers) {
+            Map<Class<?>, List<AHandler>> checked = new HashMap<>();
             Iterator<Map.Entry<Class<?>, List<AHandler>>> it = this.handlers.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry<Class<?>, List<AHandler>> entry = it.next();
                 List<AHandler> handlers = entry.getValue();
                 handlers.removeIf(handler -> handler.isStatic() && handler.getOwner().equals(owner));
-                if (handlers.isEmpty()) it.remove();
+                checked.put(entry.getKey(), handlers);
             }
+            for (Map.Entry<Class<?>, List<AHandler>> entry : checked.entrySet()) this.checkCallChain(entry.getKey(), entry.getValue());
         }
     }
 
@@ -283,8 +287,7 @@ public class LambdaManager {
             List<AHandler> handlers = this.handlers.get(event);
             if (handlers == null) return;
             handlers.removeIf(handler -> handler.isStatic() && handler.getOwner().equals(owner));
-            if (handlers.isEmpty()) this.handlers.remove(event);
-            else this.resortHandlers(handlers);
+            this.checkCallChain(event, handlers);
         }
     }
 
@@ -295,13 +298,15 @@ public class LambdaManager {
      */
     public void unregister(@Nonnull final Object owner) {
         synchronized (this.handlers) {
+            Map<Class<?>, List<AHandler>> checked = new HashMap<>();
             Iterator<Map.Entry<Class<?>, List<AHandler>>> it = this.handlers.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry<Class<?>, List<AHandler>> entry = it.next();
                 List<AHandler> handlers = entry.getValue();
                 handlers.removeIf(handler -> !handler.isStatic() && handler.getInstance().equals(owner));
-                if (handlers.isEmpty()) it.remove();
+                checked.put(entry.getKey(), handlers);
             }
+            for (Map.Entry<Class<?>, List<AHandler>> entry : checked.entrySet()) this.checkCallChain(entry.getKey(), entry.getValue());
         }
     }
 
@@ -316,8 +321,7 @@ public class LambdaManager {
             List<AHandler> handlers = this.handlers.get(event);
             if (handlers == null) return;
             handlers.removeIf(handler -> !handler.isStatic() && handler.getInstance().equals(owner));
-            if (handlers.isEmpty()) this.handlers.remove(event);
-            else this.resortHandlers(handlers);
+            this.checkCallChain(event, handlers);
         }
     }
 
@@ -328,13 +332,15 @@ public class LambdaManager {
      */
     public void unregister(@Nonnull final Runnable runnable) {
         synchronized (this.handlers) {
+            Map<Class<?>, List<AHandler>> checked = new HashMap<>();
             Iterator<Map.Entry<Class<?>, List<AHandler>>> it = this.handlers.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry<Class<?>, List<AHandler>> entry = it.next();
                 List<AHandler> handlers = entry.getValue();
                 handlers.removeIf(handler -> handler instanceof RunnableHandler && ((RunnableHandler) handler).getRunnable().equals(runnable));
-                if (handlers.isEmpty()) it.remove();
+                checked.put(entry.getKey(), handlers);
             }
+            for (Map.Entry<Class<?>, List<AHandler>> entry : checked.entrySet()) this.checkCallChain(entry.getKey(), entry.getValue());
         }
     }
 
@@ -354,7 +360,7 @@ public class LambdaManager {
                 List<AHandler> handlers = this.handlers.get(event);
                 if (handlers == null) continue;
                 handlers.removeIf(handler -> handler instanceof RunnableHandler && ((RunnableHandler) handler).getRunnable().equals(runnable));
-                if (handlers.isEmpty()) this.handlers.remove(event);
+                this.checkCallChain(event, handlers);
             }
         }
     }
@@ -366,13 +372,15 @@ public class LambdaManager {
      */
     public void unregister(@Nonnull final Consumer consumer) {
         synchronized (this.handlers) {
+            Map<Class<?>, List<AHandler>> checked = new HashMap<>();
             Iterator<Map.Entry<Class<?>, List<AHandler>>> it = this.handlers.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry<Class<?>, List<AHandler>> entry = it.next();
                 List<AHandler> handlers = entry.getValue();
                 handlers.removeIf(handler -> handler instanceof ConsumerHandler && ((ConsumerHandler) handler).getConsumer().equals(consumer));
-                if (handlers.isEmpty()) it.remove();
+                checked.put(entry.getKey(), handlers);
             }
+            for (Map.Entry<Class<?>, List<AHandler>> entry : checked.entrySet()) this.checkCallChain(entry.getKey(), entry.getValue());
         }
     }
 
@@ -392,14 +400,18 @@ public class LambdaManager {
                 List<AHandler> handlers = this.handlers.get(event);
                 if (handlers == null) continue;
                 handlers.removeIf(handler -> handler instanceof ConsumerHandler && ((ConsumerHandler) handler).getConsumer().equals(consumer));
-                if (handlers.isEmpty()) this.handlers.remove(event);
+                this.checkCallChain(event, handlers);
             }
         }
     }
 
 
-    private void resortHandlers(final List<AHandler> handlers) {
-        handlers.sort(Comparator.comparingInt((AHandler o) -> o.getAnnotation().priority()).reversed());
+    private void checkCallChain(final Class<?> event, final List<AHandler> handlers) {
+        if (handlers.isEmpty()) {
+            this.handlers.remove(event);
+        } else if (handlers.size() > 1) {
+            handlers.sort(Comparator.comparingInt((AHandler o) -> o.getAnnotation().priority()).reversed());
+        }
     }
 
 }
