@@ -3,8 +3,8 @@ package net.lenni0451.lambdaevents.generator;
 import net.lenni0451.lambdaevents.AHandler;
 import net.lenni0451.lambdaevents.EventHandler;
 import net.lenni0451.lambdaevents.IGenerator;
-import net.lenni0451.lambdaevents.handler.ConsumerHandler;
-import net.lenni0451.lambdaevents.handler.RunnableHandler;
+import net.lenni0451.lambdaevents.handler.methodhandle.MethodHandleHandler;
+import net.lenni0451.lambdaevents.handler.methodhandle.VirtualMethodHandleHandler;
 import net.lenni0451.lambdaevents.utils.EventUtils;
 import net.lenni0451.lambdaevents.utils.LookupUtils;
 
@@ -39,26 +39,14 @@ public class MethodHandleGenerator implements IGenerator {
     @Nonnull
     public AHandler generate(@Nonnull Class<?> owner, @Nullable Object instance, @Nonnull EventHandler annotation, @Nonnull Method method, @Nonnull Class<?> arg) {
         MethodHandle handle = this.getHandle(owner, instance, method);
-        return new ConsumerHandler(owner, instance, annotation, event -> {
-            try {
-                handle.invoke(event);
-            } catch (Throwable t) {
-                EventUtils.sneak(t);
-            }
-        });
+        return new MethodHandleHandler(owner, instance, annotation, handle);
     }
 
     @Override
     @Nonnull
     public AHandler generateVirtual(@Nonnull Class<?> owner, @Nullable Object instance, @Nonnull EventHandler annotation, @Nonnull Method method) {
         MethodHandle handle = this.getHandle(owner, instance, method);
-        return new RunnableHandler(owner, instance, annotation, () -> {
-            try {
-                handle.invokeExact();
-            } catch (Throwable t) {
-                EventUtils.sneak(t);
-            }
-        });
+        return new VirtualMethodHandleHandler(owner, instance, annotation, handle);
     }
 
     private MethodHandle getHandle(final Class<?> owner, final Object instance, final Method method) {
