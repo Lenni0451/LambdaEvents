@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-@SuppressWarnings("ALL")
+@SuppressWarnings({"unchecked", "unused", "rawtypes"})
 public class LambdaManager {
 
     /**
@@ -29,7 +29,7 @@ public class LambdaManager {
      * @return The new {@link LambdaManager} instance
      */
     public static LambdaManager basic(@Nonnull final IGenerator generator) {
-        return new LambdaManager(new HashMap<>(), ArrayList::new, generator);
+        return new LambdaManager(HashMap::new, ArrayList::new, generator);
     }
 
     /**
@@ -40,11 +40,12 @@ public class LambdaManager {
      * @return The new {@link LambdaManager} instance
      */
     public static LambdaManager threadSafe(@Nonnull final IGenerator generator) {
-        return new LambdaManager(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new, generator);
+        return new LambdaManager(ConcurrentHashMap::new, CopyOnWriteArrayList::new, generator);
     }
 
 
     private final Map<Class<?>, List<AHandler>> handlers;
+    private final Map<Class<?>, AHandler[]> handlerArrays;
     private final Supplier<List<AHandler>> listSupplier;
     private final IGenerator generator;
 
@@ -54,12 +55,24 @@ public class LambdaManager {
     private boolean registerSuperHandler = false;
 
     /**
-     * @param handlers     The map which should be used to store the event to handler mappings
-     * @param listSupplier The supplier for the list which should be used to store the handlers for an event
-     * @param generator    The {@link IGenerator} implementation which should be used
+     * <b>Deprecated constructor, use {@link #LambdaManager(Supplier, Supplier, IGenerator)}.</b>
      */
+    @Deprecated
     public LambdaManager(@Nonnull final Map<Class<?>, List<AHandler>> handlers, @Nonnull final Supplier<List<AHandler>> listSupplier, @Nonnull final IGenerator generator) {
         this.handlers = handlers;
+        this.handlerArrays = handlers instanceof HashMap ? new HashMap<>() : new ConcurrentHashMap<>();
+        this.listSupplier = listSupplier;
+        this.generator = generator;
+    }
+
+    /**
+     * @param mapSupplier  The supplier for the maps used to store the event to handler mappings
+     * @param listSupplier The supplier for the list used to store the handlers for an event
+     * @param generator    The {@link IGenerator} implementation which should be used
+     */
+    public LambdaManager(@Nonnull final Supplier<Map> mapSupplier, @Nonnull final Supplier<List<AHandler>> listSupplier, @Nonnull final IGenerator generator) {
+        this.handlers = mapSupplier.get();
+        this.handlerArrays = new HashMap<>();
         this.listSupplier = listSupplier;
         this.generator = generator;
     }
@@ -92,7 +105,7 @@ public class LambdaManager {
      */
     @Nonnull
     public <T> T call(@Nonnull final T event) {
-        List<AHandler> handlers = this.handlers.get(event.getClass());
+        AHandler[] handlers = this.handlerArrays.get(event.getClass());
         if (handlers == null) return event;
 
         for (AHandler handler : handlers) {
@@ -265,9 +278,7 @@ public class LambdaManager {
     public void unregister(@Nonnull final Class<?> owner) {
         synchronized (this.handlers) {
             Map<Class<?>, List<AHandler>> checked = new HashMap<>();
-            Iterator<Map.Entry<Class<?>, List<AHandler>>> it = this.handlers.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<Class<?>, List<AHandler>> entry = it.next();
+            for (Map.Entry<Class<?>, List<AHandler>> entry : this.handlers.entrySet()) {
                 List<AHandler> handlers = entry.getValue();
                 handlers.removeIf(handler -> handler.isStatic() && handler.getOwner().equals(owner));
                 checked.put(entry.getKey(), handlers);
@@ -296,12 +307,11 @@ public class LambdaManager {
      *
      * @param owner The object from which the non-static event handlers should be unregistered
      */
+    @SuppressWarnings("DataFlowIssue")
     public void unregister(@Nonnull final Object owner) {
         synchronized (this.handlers) {
             Map<Class<?>, List<AHandler>> checked = new HashMap<>();
-            Iterator<Map.Entry<Class<?>, List<AHandler>>> it = this.handlers.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<Class<?>, List<AHandler>> entry = it.next();
+            for (Map.Entry<Class<?>, List<AHandler>> entry : this.handlers.entrySet()) {
                 List<AHandler> handlers = entry.getValue();
                 handlers.removeIf(handler -> !handler.isStatic() && handler.getInstance().equals(owner));
                 checked.put(entry.getKey(), handlers);
@@ -316,6 +326,7 @@ public class LambdaManager {
      * @param event The event class
      * @param owner The object from which the non-static event handlers should be unregistered
      */
+    @SuppressWarnings("DataFlowIssue")
     public void unregister(@Nullable final Class<?> event, @Nonnull final Object owner) {
         synchronized (this.handlers) {
             List<AHandler> handlers = this.handlers.get(event);
@@ -333,9 +344,7 @@ public class LambdaManager {
     public void unregister(@Nonnull final Runnable runnable) {
         synchronized (this.handlers) {
             Map<Class<?>, List<AHandler>> checked = new HashMap<>();
-            Iterator<Map.Entry<Class<?>, List<AHandler>>> it = this.handlers.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<Class<?>, List<AHandler>> entry = it.next();
+            for (Map.Entry<Class<?>, List<AHandler>> entry : this.handlers.entrySet()) {
                 List<AHandler> handlers = entry.getValue();
                 handlers.removeIf(handler -> handler instanceof RunnableHandler && ((RunnableHandler) handler).getRunnable().equals(runnable));
                 checked.put(entry.getKey(), handlers);
@@ -373,9 +382,7 @@ public class LambdaManager {
     public void unregister(@Nonnull final Consumer consumer) {
         synchronized (this.handlers) {
             Map<Class<?>, List<AHandler>> checked = new HashMap<>();
-            Iterator<Map.Entry<Class<?>, List<AHandler>>> it = this.handlers.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<Class<?>, List<AHandler>> entry = it.next();
+            for (Map.Entry<Class<?>, List<AHandler>> entry : this.handlers.entrySet()) {
                 List<AHandler> handlers = entry.getValue();
                 handlers.removeIf(handler -> handler instanceof ConsumerHandler && ((ConsumerHandler) handler).getConsumer().equals(consumer));
                 checked.put(entry.getKey(), handlers);
@@ -409,9 +416,12 @@ public class LambdaManager {
     private void checkCallChain(final Class<?> event, final List<AHandler> handlers) {
         if (handlers.isEmpty()) {
             this.handlers.remove(event);
+            this.handlerArrays.remove(event);
+            return;
         } else if (handlers.size() > 1) {
             handlers.sort(Comparator.comparingInt((AHandler o) -> o.getAnnotation().priority()).reversed());
         }
+        this.handlerArrays.put(event, handlers.toArray(new AHandler[0]));
     }
 
 }
