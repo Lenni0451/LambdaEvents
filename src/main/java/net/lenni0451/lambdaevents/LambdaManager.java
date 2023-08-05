@@ -8,6 +8,7 @@ import net.lenni0451.lambdaevents.utils.EventUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -54,6 +55,7 @@ public class LambdaManager {
         new EventException("Exception occurred in '" + event.getClass().getSimpleName() + "' handler in '" + handler.getOwner().getName() + "'", t).printStackTrace();
     };
     private boolean registerSuperHandler = false;
+    private boolean alwaysCallParents = false;
 
     /**
      * <b>Deprecated constructor, use {@link #LambdaManager(Supplier, Supplier, IGenerator)}.</b>
@@ -94,6 +96,16 @@ public class LambdaManager {
         this.registerSuperHandler = registerSuperHandler;
     }
 
+    /**
+     * Always call all event handlers for parent classes of the event (including interfaces).<br>
+     * Basically a redirect from {@link #call(Object)} to {@link #callParents(Object)}.
+     *
+     * @param alwaysCallParents If all event handlers for parent classes should be called
+     */
+    public void setAlwaysCallParents(final boolean alwaysCallParents) {
+        this.alwaysCallParents = alwaysCallParents;
+    }
+
 
     /**
      * Call all handlers for the given event.
@@ -104,6 +116,7 @@ public class LambdaManager {
      */
     @Nonnull
     public <T> T call(@Nonnull final T event) {
+        if (this.alwaysCallParents) return this.callParents(event);
         AHandler[] handlers = this.handlerArrays.get(event.getClass());
         if (handlers == null) return event;
 
@@ -121,7 +134,7 @@ public class LambdaManager {
 
     /**
      * Call all handlers for the given event and all parent classes of the event (including interfaces).<br>
-     * E.g. {@link RuntimeException} -{@literal >} {@link Exception} -{@literal >} {@link Throwable} -{@literal >} {@link Object}
+     * {@link RuntimeException} -{@literal >} {@link Exception} -{@literal >} {@link Throwable} -{@literal >} {@link Serializable} -{@literal >} {@link Object}
      *
      * @param event The event instance
      * @param <T>   The event type

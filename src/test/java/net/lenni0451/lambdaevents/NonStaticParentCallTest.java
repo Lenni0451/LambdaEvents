@@ -55,6 +55,21 @@ public class NonStaticParentCallTest {
         assertTrue(this.calledRuntimeException);
     }
 
+    @ParameterizedTest
+    @MethodSource(DATA_SOURCE)
+    void alwaysCallParents(final LambdaManager manager) {
+        assertDoesNotThrow(() -> manager.register(this));
+        manager.setExceptionHandler((handler, event, t) -> EventUtils.sneak(t));
+        manager.setAlwaysCallParents(true);
+        manager.callParents(new RuntimeException());
+
+        assertTrue(this.calledObject);
+        assertTrue(this.calledSerializable);
+        assertTrue(this.calledThrowable);
+        assertTrue(this.calledException);
+        assertTrue(this.calledRuntimeException);
+    }
+
 
     @EventHandler
     public void onObject(final Object o) {

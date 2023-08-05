@@ -55,6 +55,21 @@ public class StaticParentCallTest {
         assertTrue(calledRuntimeException);
     }
 
+    @ParameterizedTest
+    @MethodSource(DATA_SOURCE)
+    void alwaysCallParents(final LambdaManager manager) {
+        assertDoesNotThrow(() -> manager.register(StaticParentCallTest.class));
+        manager.setExceptionHandler((handler, event, t) -> EventUtils.sneak(t));
+        manager.setAlwaysCallParents(true);
+        manager.callParents(new RuntimeException());
+
+        assertTrue(calledObject);
+        assertTrue(calledSerializable);
+        assertTrue(calledThrowable);
+        assertTrue(calledException);
+        assertTrue(calledRuntimeException);
+    }
+
 
     @EventHandler
     public static void onObject(final Object o) {
