@@ -120,6 +120,34 @@ public class LambdaManager {
         return event;
     }
 
+    /**
+     * Call all handlers for the given event and all parent classes of the event.<br>
+     * E.g. {@link RuntimeException} -{@literal >} {@link Exception} -{@literal >} {@link Throwable} -{@literal >} {@link Object}
+     *
+     * @param event The event instance
+     * @param <T>   The event type
+     * @return The given event instance
+     */
+    @Nonnull
+    public <T> T callParents(@Nonnull final T event) {
+        Class<?> clazz = event.getClass();
+        do {
+            AHandler[] handlers = this.handlerArrays.get(clazz);
+            if (handlers == null) continue;
+
+            for (AHandler handler : handlers) {
+                try {
+                    handler.call(event);
+                } catch (StopCall ignored) {
+                    break;
+                } catch (Throwable t) {
+                    this.exceptionHandler.handle(handler, event, t);
+                }
+            }
+        } while ((clazz = clazz.getSuperclass()) != null);
+        return event;
+    }
+
 
     /**
      * Register all static event handlers in the given class.
