@@ -20,11 +20,15 @@ public @interface EventHandler {
      * The priority of the handler.<br>
      * higher = called first<br>
      * lower = called last
+     *
+     * @return The priority or 0
      */
     int priority() default 0;
 
     /**
      * The events the handler listens to when no event parameter is present.
+     *
+     * @return The events or an empty array
      */
     Class<?>[] events() default {};
 
