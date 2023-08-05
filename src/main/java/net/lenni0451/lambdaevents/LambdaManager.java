@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-@SuppressWarnings({"unchecked", "unused", "rawtypes"})
+@SuppressWarnings({"unchecked", "unused", "rawtypes", "UnusedReturnValue"})
 public class LambdaManager {
 
     /**
@@ -46,6 +46,7 @@ public class LambdaManager {
 
     private final Map<Class<?>, List<AHandler>> handlers;
     private final Map<Class<?>, AHandler[]> handlerArrays;
+    private final Map<Class<?>, Class[]> parentsCache;
     private final Supplier<List<AHandler>> listSupplier;
     private final IGenerator generator;
 
@@ -59,10 +60,7 @@ public class LambdaManager {
      */
     @Deprecated
     public LambdaManager(@Nonnull final Map<Class<?>, List<AHandler>> handlers, @Nonnull final Supplier<List<AHandler>> listSupplier, @Nonnull final IGenerator generator) {
-        this.handlers = handlers;
-        this.handlerArrays = handlers instanceof HashMap ? new HashMap<>() : new ConcurrentHashMap<>();
-        this.listSupplier = listSupplier;
-        this.generator = generator;
+        this(handlers instanceof HashMap ? HashMap::new : ConcurrentHashMap::new, listSupplier, generator);
     }
 
     /**
@@ -72,7 +70,8 @@ public class LambdaManager {
      */
     public LambdaManager(@Nonnull final Supplier<Map> mapSupplier, @Nonnull final Supplier<List<AHandler>> listSupplier, @Nonnull final IGenerator generator) {
         this.handlers = mapSupplier.get();
-        this.handlerArrays = new HashMap<>();
+        this.handlerArrays = mapSupplier.get();
+        this.parentsCache = mapSupplier.get();
         this.listSupplier = listSupplier;
         this.generator = generator;
     }
@@ -121,7 +120,7 @@ public class LambdaManager {
     }
 
     /**
-     * Call all handlers for the given event and all parent classes of the event.<br>
+     * Call all handlers for the given event and all parent classes of the event (including interfaces).<br>
      * E.g. {@link RuntimeException} -{@literal >} {@link Exception} -{@literal >} {@link Throwable} -{@literal >} {@link Object}
      *
      * @param event The event instance
@@ -130,8 +129,16 @@ public class LambdaManager {
      */
     @Nonnull
     public <T> T callParents(@Nonnull final T event) {
-        Class<?> clazz = event.getClass();
-        do {
+        for (Class clazz : this.parentsCache.computeIfAbsent(event.getClass(), clazz -> {
+            Set<Class<?>> parents = new LinkedHashSet<>();
+            Class<?> current = clazz;
+            while (current != null) {
+                parents.add(current);
+                Collections.addAll(parents, current.getInterfaces());
+                current = current.getSuperclass();
+            }
+            return parents.toArray(new Class[0]);
+        })) {
             AHandler[] handlers = this.handlerArrays.get(clazz);
             if (handlers == null) continue;
 
@@ -144,7 +151,7 @@ public class LambdaManager {
                     this.exceptionHandler.handle(handler, event, t);
                 }
             }
-        } while ((clazz = clazz.getSuperclass()) != null);
+        }
         return event;
     }
 

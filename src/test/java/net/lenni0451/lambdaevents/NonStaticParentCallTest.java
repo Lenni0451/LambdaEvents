@@ -5,12 +5,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.Serializable;
+
 import static net.lenni0451.lambdaevents.TestManager.DATA_SOURCE;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class NonStaticParentCallTest {
 
     private boolean calledObject = false;
+    private boolean calledSerializable = false;
     private boolean calledThrowable = false;
     private boolean calledException = false;
     private boolean calledRuntimeException = false;
@@ -18,6 +21,7 @@ public class NonStaticParentCallTest {
     @BeforeEach
     void reset() {
         this.calledObject = false;
+        this.calledSerializable = false;
         this.calledThrowable = false;
         this.calledException = false;
         this.calledRuntimeException = false;
@@ -31,6 +35,7 @@ public class NonStaticParentCallTest {
         manager.call(new RuntimeException());
 
         assertFalse(this.calledObject);
+        assertFalse(this.calledSerializable);
         assertFalse(this.calledThrowable);
         assertFalse(this.calledException);
         assertTrue(this.calledRuntimeException);
@@ -44,6 +49,7 @@ public class NonStaticParentCallTest {
         manager.callParents(new RuntimeException());
 
         assertTrue(this.calledObject);
+        assertTrue(this.calledSerializable);
         assertTrue(this.calledThrowable);
         assertTrue(this.calledException);
         assertTrue(this.calledRuntimeException);
@@ -53,6 +59,11 @@ public class NonStaticParentCallTest {
     @EventHandler
     public void onObject(final Object o) {
         this.calledObject = true;
+    }
+
+    @EventHandler
+    public void onSerializable(final Serializable s) {
+        this.calledSerializable = true;
     }
 
     @EventHandler
