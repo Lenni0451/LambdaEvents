@@ -286,11 +286,6 @@ public class LambdaManager {
         for (Class<?> event : EventUtils.getEvents(annotation, method, accept)) this.registerMethod(owner, instance, annotation, method, event, method.getParameterCount() == 0);
     }
 
-    private void registerField(final Class<?> owner, final Object instance, final EventHandler annotation, final Field field, final Predicate<Class<?>> accept) {
-        EventUtils.verify(owner, annotation, field);
-        for (Class<?> event : EventUtils.getEvents(annotation, field, accept)) this.registerField(owner, instance, annotation, field, event);
-    }
-
     private void registerMethod(final Class<?> owner, final Object instance, final EventHandler annotation, final Method method, final Class<?> event, final boolean virtual) {
         synchronized (this.handlers) {
             List<AHandler> handlers = this.handlers.computeIfAbsent(event, (key) -> this.listSupplier.get());
@@ -300,6 +295,11 @@ public class LambdaManager {
             handlers.add(handler);
             this.checkCallChain(event, handlers);
         }
+    }
+
+    private void registerField(final Class<?> owner, final Object instance, final EventHandler annotation, final Field field, final Predicate<Class<?>> accept) {
+        EventUtils.verify(owner, annotation, field);
+        for (Class<?> event : EventUtils.getEvents(annotation, field, accept)) this.registerField(owner, instance, annotation, field, event);
     }
 
     private void registerField(final Class<?> owner, final Object instance, final EventHandler annotation, final Field field, final Class<?> event) {

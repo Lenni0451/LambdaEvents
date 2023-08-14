@@ -55,7 +55,7 @@ public abstract class AHandler {
     }
 
     /**
-     * Call the event handler with the given event instance
+     * Call the event handler with the given event instance.
      *
      * @param event The event instance
      */

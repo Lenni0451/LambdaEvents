@@ -26,8 +26,8 @@ public class DirectFieldTest {
     @ParameterizedTest
     @MethodSource(DATA_SOURCE)
     void registered(final LambdaManager manager) {
-        manager.register(runnable, String.class);
-        manager.register(consumer, String.class);
+        manager.register(this.runnable, String.class);
+        manager.register(this.consumer, String.class);
         manager.call("Test");
 
         assertTrue(this.calledRunnable);
@@ -37,10 +37,10 @@ public class DirectFieldTest {
     @ParameterizedTest
     @MethodSource(DATA_SOURCE)
     void unregister(final LambdaManager manager) {
-        manager.register(runnable, String.class);
-        manager.register(consumer, String.class);
-        manager.unregister(runnable);
-        manager.unregister(consumer);
+        manager.register(this.runnable, String.class);
+        manager.register(this.consumer, String.class);
+        manager.unregister(this.runnable);
+        manager.unregister(this.consumer);
         manager.call("Test");
 
         assertFalse(this.calledRunnable);

@@ -80,7 +80,7 @@ public class LookupUtils {
     }
 
     /**
-     * Reimplementation of {@link sun.invoke.util.VerifyAccess#isTypeVisible(Class, Class)}
+     * Reimplementation of {@link sun.invoke.util.VerifyAccess#isTypeVisible(Class, Class)}.
      *
      * @param wanted The class that should be visible
      * @param clazz  The class that should be able to see the wanted class
