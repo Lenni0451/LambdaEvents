@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-@SuppressWarnings({"unchecked", "unused", "rawtypes", "UnusedReturnValue"})
+@SuppressWarnings({"unchecked", "unused", "UnusedReturnValue"})
 public class LambdaManager {
 
     /**
@@ -47,7 +47,7 @@ public class LambdaManager {
 
     private final Map<Class<?>, List<AHandler>> handlers;
     private final Map<Class<?>, AHandler[]> handlerArrays;
-    private final Map<Class<?>, Class[]> parentsCache;
+    private final Map<Class<?>, Class<?>[]> parentsCache;
     private final Supplier<List<AHandler>> listSupplier;
     private final IGenerator generator;
 
@@ -142,7 +142,7 @@ public class LambdaManager {
      */
     @Nonnull
     public <T> T callParents(@Nonnull final T event) {
-        for (Class clazz : this.parentsCache.computeIfAbsent(event.getClass(), clazz -> {
+        for (Class<?> clazz : this.parentsCache.computeIfAbsent(event.getClass(), clazz -> {
             Set<Class<?>> parents = new LinkedHashSet<>();
             Class<?> current = clazz;
             while (current != null) {
@@ -270,7 +270,7 @@ public class LambdaManager {
      * @param priority The priority of the {@link Consumer}
      * @param events   The events for which the {@link Consumer} should be registered
      */
-    public void register(@Nonnull final Consumer consumer, final int priority, @Nonnull final Class<?>... events) {
+    public void register(@Nonnull final Consumer<?> consumer, final int priority, @Nonnull final Class<?>... events) {
         if (events.length == 0) throw new IllegalArgumentException("No events specified");
         synchronized (this.handlers) {
             for (Class<?> event : events) {
@@ -308,7 +308,7 @@ public class LambdaManager {
             AHandler handler;
             try {
                 if (Runnable.class.isAssignableFrom(field.getType())) handler = new RunnableHandler(owner, instance, annotation, (Runnable) field.get(instance));
-                else handler = new ConsumerHandler(owner, instance, annotation, (Consumer<Object>) field.get(instance));
+                else handler = new ConsumerHandler(owner, instance, annotation, (Consumer<?>) field.get(instance));
             } catch (Throwable t) {
                 throw new RuntimeException("Failed to register field '" + field.getName() + "' in class '" + owner.getName() + "'", t);
             }
@@ -427,7 +427,7 @@ public class LambdaManager {
      *
      * @param consumer The {@link Consumer} to unregister
      */
-    public void unregister(@Nonnull final Consumer consumer) {
+    public void unregister(@Nonnull final Consumer<?> consumer) {
         synchronized (this.handlers) {
             Map<Class<?>, List<AHandler>> checked = new HashMap<>();
             for (Map.Entry<Class<?>, List<AHandler>> entry : this.handlers.entrySet()) {
@@ -445,7 +445,7 @@ public class LambdaManager {
      * @param consumer The {@link Consumer} to unregister
      * @param events   The events from which the {@link Consumer} should be unregistered
      */
-    public void unregister(@Nonnull final Consumer consumer, @Nonnull final Class<?>... events) {
+    public void unregister(@Nonnull final Consumer<?> consumer, @Nonnull final Class<?>... events) {
         if (events.length == 0) {
             this.unregister(consumer);
             return;

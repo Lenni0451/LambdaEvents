@@ -20,7 +20,8 @@ public class ConsumerHandler extends AHandler {
      * @param annotation The {@link EventHandler} annotation of the handler method
      * @param consumer   The handler consumer
      */
-    public ConsumerHandler(@Nonnull final Class<?> owner, @Nullable final Object instance, @Nonnull final EventHandler annotation, @Nonnull final Consumer<Object> consumer) {
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public ConsumerHandler(@Nonnull final Class<?> owner, @Nullable final Object instance, @Nonnull final EventHandler annotation, @Nonnull final Consumer consumer) {
         super(owner, instance, annotation);
         this.consumer = consumer;
     }
