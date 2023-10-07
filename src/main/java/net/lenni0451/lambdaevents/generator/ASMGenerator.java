@@ -15,7 +15,8 @@ import static net.lenni0451.reflect.wrapper.ASMWrapper.*;
 
 /**
  * The {@link IGenerator} implementation which calls the handler method using an ASM generated handler.<br>
- * <b>This requires the <a href="https://github.com/Lenni0451/Reflect">Reflect library</a> to work!</b>
+ * <b>This requires the <a href="https://github.com/Lenni0451/Reflect">Reflect library</a> to work (<a href="https://mvnrepository.com/artifact/net.lenni0451/Reflect">maven</a>)!</b><br>
+ * <b>This also requires <a href="https://asm.ow2.io/">ASM</a> to work (<a href="https://mvnrepository.com/artifact/org.ow2.asm/asm">maven</a>)!</b>
  */
 public class ASMGenerator implements IGenerator {
 
