@@ -7,6 +7,7 @@ import net.lenni0451.lambdaevents.utils.EventUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -18,7 +19,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-@SuppressWarnings({"unchecked", "unused", "UnusedReturnValue"})
+@ParametersAreNonnullByDefault
 public class LambdaManager {
 
     /**
@@ -28,7 +29,7 @@ public class LambdaManager {
      * @param generator The {@link IGenerator} implementation which should be used
      * @return The new {@link LambdaManager} instance
      */
-    public static LambdaManager basic(@Nonnull final IGenerator generator) {
+    public static LambdaManager basic(final IGenerator generator) {
         return new LambdaManager(HashMap::new, ArrayList::new, generator);
     }
 
@@ -39,7 +40,7 @@ public class LambdaManager {
      * @param generator The {@link IGenerator} implementation which should be used
      * @return The new {@link LambdaManager} instance
      */
-    public static LambdaManager threadSafe(@Nonnull final IGenerator generator) {
+    public static LambdaManager threadSafe(final IGenerator generator) {
         return new LambdaManager(ConcurrentHashMap::new, CopyOnWriteArrayList::new, generator);
     }
 
@@ -60,7 +61,7 @@ public class LambdaManager {
      * <b>Deprecated constructor, use {@link #LambdaManager(Supplier, Supplier, IGenerator)}.</b>
      */
     @Deprecated
-    public LambdaManager(@Nonnull final Map<Class<?>, List<AHandler>> handlers, @Nonnull final Supplier<List<AHandler>> listSupplier, @Nonnull final IGenerator generator) {
+    public LambdaManager(final Map<Class<?>, List<AHandler>> handlers, final Supplier<List<AHandler>> listSupplier, final IGenerator generator) {
         this(handlers instanceof HashMap ? HashMap::new : ConcurrentHashMap::new, listSupplier, generator);
     }
 
@@ -69,7 +70,7 @@ public class LambdaManager {
      * @param listSupplier The supplier for the list used to store the handlers for an event
      * @param generator    The {@link IGenerator} implementation which should be used
      */
-    public LambdaManager(@Nonnull final Supplier<Map> mapSupplier, @Nonnull final Supplier<List<AHandler>> listSupplier, @Nonnull final IGenerator generator) {
+    public LambdaManager(final Supplier<Map> mapSupplier, final Supplier<List<AHandler>> listSupplier, final IGenerator generator) {
         this.handlers = mapSupplier.get();
         this.handlerArrays = mapSupplier.get();
         this.parentsCache = mapSupplier.get();
@@ -82,7 +83,7 @@ public class LambdaManager {
      *
      * @param exceptionHandler The {@link IExceptionHandler} which should be used to handle exceptions
      */
-    public void setExceptionHandler(@Nonnull final IExceptionHandler exceptionHandler) {
+    public void setExceptionHandler(final IExceptionHandler exceptionHandler) {
         this.exceptionHandler = exceptionHandler;
     }
 
@@ -114,7 +115,7 @@ public class LambdaManager {
      * @return The given event instance
      */
     @Nonnull
-    public <T> T call(@Nonnull final T event) {
+    public <T> T call(final T event) {
         if (this.alwaysCallParents) return this.callParents(event);
         AHandler[] handlers = this.handlerArrays.get(event.getClass());
         if (handlers == null) return event;
@@ -140,7 +141,7 @@ public class LambdaManager {
      * @return The given event instance
      */
     @Nonnull
-    public <T> T callParents(@Nonnull final T event) {
+    public <T> T callParents(final T event) {
         for (Class<?> clazz : this.parentsCache.computeIfAbsent(event.getClass(), clazz -> {
             Set<Class<?>> parents = new LinkedHashSet<>();
             Class<?> current = clazz;
@@ -173,7 +174,7 @@ public class LambdaManager {
      *
      * @param owner The class which should be scanned
      */
-    public void register(@Nonnull final Class<?> owner) {
+    public void register(final Class<?> owner) {
         this.register(null, owner);
     }
 
@@ -183,7 +184,7 @@ public class LambdaManager {
      * @param event The event class
      * @param owner The class which should be scanned
      */
-    public void register(@Nullable final Class<?> event, @Nonnull final Class<?> owner) {
+    public void register(@Nullable final Class<?> event, final Class<?> owner) {
         for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner, method -> Modifier.isStatic(method.getModifiers()), this.registerSuperHandler)) {
             if (event == null) this.registerMethod(owner, null, handler.getAnnotation(), handler.getMethod(), e -> true);
             else this.registerMethod(owner, null, handler.getAnnotation(), handler.getMethod(), e -> e.equals(event));
@@ -199,7 +200,7 @@ public class LambdaManager {
      *
      * @param owner The object which should be scanned
      */
-    public void register(@Nonnull final Object owner) {
+    public void register(final Object owner) {
         this.register(null, owner);
     }
 
@@ -209,7 +210,7 @@ public class LambdaManager {
      * @param event The event class
      * @param owner The object which should be scanned
      */
-    public void register(@Nullable final Class<?> event, @Nonnull final Object owner) {
+    public void register(@Nullable final Class<?> event, final Object owner) {
         for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner.getClass(), method -> !Modifier.isStatic(method.getModifiers()), this.registerSuperHandler)) {
             if (event == null) this.registerMethod(owner.getClass(), owner, handler.getAnnotation(), handler.getMethod(), e -> true);
             else this.registerMethod(owner.getClass(), owner, handler.getAnnotation(), handler.getMethod(), e -> e.equals(event));
@@ -226,7 +227,7 @@ public class LambdaManager {
      * @param runnable The {@link Runnable} which should be registered
      * @param events   The events for which the {@link Runnable} should be registered
      */
-    public void register(@Nonnull final Runnable runnable, @Nonnull final Class<?>... events) {
+    public void register(final Runnable runnable, final Class<?>... events) {
         this.register(runnable, 0, events);
     }
 
@@ -237,7 +238,7 @@ public class LambdaManager {
      * @param priority The priority of the {@link Runnable}
      * @param events   The events for which the {@link Runnable} should be registered
      */
-    public void register(@Nonnull final Runnable runnable, final int priority, @Nonnull final Class<?>... events) {
+    public void register(final Runnable runnable, final int priority, final Class<?>... events) {
         if (events.length == 0) throw new IllegalArgumentException("No events specified");
         synchronized (this.handlers) {
             for (Class<?> event : events) {
@@ -256,7 +257,7 @@ public class LambdaManager {
      * @param consumer The {@link Consumer} which should be registered
      * @param events   The events for which the {@link Consumer} should be registered
      */
-    public void register(@Nonnull final Consumer<?> consumer, @Nonnull final Class<?>... events) {
+    public void register(final Consumer<?> consumer, final Class<?>... events) {
         this.register(consumer, 0, events);
     }
 
@@ -269,7 +270,7 @@ public class LambdaManager {
      * @param priority The priority of the {@link Consumer}
      * @param events   The events for which the {@link Consumer} should be registered
      */
-    public void register(@Nonnull final Consumer<?> consumer, final int priority, @Nonnull final Class<?>... events) {
+    public void register(final Consumer<?> consumer, final int priority, final Class<?>... events) {
         if (events.length == 0) throw new IllegalArgumentException("No events specified");
         synchronized (this.handlers) {
             for (Class<?> event : events) {
@@ -280,12 +281,12 @@ public class LambdaManager {
         }
     }
 
-    private void registerMethod(final Class<?> owner, final Object instance, final EventHandler annotation, final Method method, final Predicate<Class<?>> accept) {
+    private void registerMethod(final Class<?> owner, @Nullable final Object instance, final EventHandler annotation, final Method method, final Predicate<Class<?>> accept) {
         EventUtils.verify(owner, annotation, method);
         for (Class<?> event : EventUtils.getEvents(annotation, method, accept)) this.registerMethod(owner, instance, annotation, method, event, method.getParameterCount() == 0);
     }
 
-    private void registerMethod(final Class<?> owner, final Object instance, final EventHandler annotation, final Method method, final Class<?> event, final boolean virtual) {
+    private void registerMethod(final Class<?> owner, @Nullable final Object instance, final EventHandler annotation, final Method method, final Class<?> event, final boolean virtual) {
         synchronized (this.handlers) {
             List<AHandler> handlers = this.handlers.computeIfAbsent(event, (key) -> this.listSupplier.get());
             AHandler handler;
@@ -296,12 +297,12 @@ public class LambdaManager {
         }
     }
 
-    private void registerField(final Class<?> owner, final Object instance, final EventHandler annotation, final Field field, final Predicate<Class<?>> accept) {
+    private void registerField(final Class<?> owner, @Nullable final Object instance, final EventHandler annotation, final Field field, final Predicate<Class<?>> accept) {
         EventUtils.verify(owner, annotation, field);
         for (Class<?> event : EventUtils.getEvents(annotation, field, accept)) this.registerField(owner, instance, annotation, field, event);
     }
 
-    private void registerField(final Class<?> owner, final Object instance, final EventHandler annotation, final Field field, final Class<?> event) {
+    private void registerField(final Class<?> owner, @Nullable final Object instance, final EventHandler annotation, final Field field, final Class<?> event) {
         synchronized (this.handlers) {
             List<AHandler> handlers = this.handlers.computeIfAbsent(event, (key) -> this.listSupplier.get());
             AHandler handler;
@@ -322,7 +323,7 @@ public class LambdaManager {
      *
      * @param owner The class from which the static event handlers should be unregistered
      */
-    public void unregister(@Nonnull final Class<?> owner) {
+    public void unregister(final Class<?> owner) {
         synchronized (this.handlers) {
             Map<Class<?>, List<AHandler>> checked = new HashMap<>();
             for (Map.Entry<Class<?>, List<AHandler>> entry : this.handlers.entrySet()) {
@@ -340,7 +341,7 @@ public class LambdaManager {
      * @param event The event class
      * @param owner The class from which the static event handlers should be unregistered
      */
-    public void unregister(@Nullable final Class<?> event, @Nonnull final Class<?> owner) {
+    public void unregister(final Class<?> event, final Class<?> owner) {
         synchronized (this.handlers) {
             List<AHandler> handlers = this.handlers.get(event);
             if (handlers == null) return;
@@ -355,7 +356,7 @@ public class LambdaManager {
      * @param owner The object from which the non-static event handlers should be unregistered
      */
     @SuppressWarnings("DataFlowIssue")
-    public void unregister(@Nonnull final Object owner) {
+    public void unregister(final Object owner) {
         synchronized (this.handlers) {
             Map<Class<?>, List<AHandler>> checked = new HashMap<>();
             for (Map.Entry<Class<?>, List<AHandler>> entry : this.handlers.entrySet()) {
@@ -374,7 +375,7 @@ public class LambdaManager {
      * @param owner The object from which the non-static event handlers should be unregistered
      */
     @SuppressWarnings("DataFlowIssue")
-    public void unregister(@Nullable final Class<?> event, @Nonnull final Object owner) {
+    public void unregister(final Class<?> event, final Object owner) {
         synchronized (this.handlers) {
             List<AHandler> handlers = this.handlers.get(event);
             if (handlers == null) return;
@@ -388,7 +389,7 @@ public class LambdaManager {
      *
      * @param runnable The {@link Runnable} to unregister
      */
-    public void unregister(@Nonnull final Runnable runnable) {
+    public void unregister(final Runnable runnable) {
         synchronized (this.handlers) {
             Map<Class<?>, List<AHandler>> checked = new HashMap<>();
             for (Map.Entry<Class<?>, List<AHandler>> entry : this.handlers.entrySet()) {
@@ -406,7 +407,7 @@ public class LambdaManager {
      * @param runnable The {@link Runnable} to unregister
      * @param events   The events from which the {@link Runnable} should be unregistered
      */
-    public void unregister(@Nonnull final Runnable runnable, @Nonnull final Class<?>... events) {
+    public void unregister(final Runnable runnable, final Class<?>... events) {
         if (events.length == 0) {
             this.unregister(runnable);
             return;
@@ -426,7 +427,7 @@ public class LambdaManager {
      *
      * @param consumer The {@link Consumer} to unregister
      */
-    public void unregister(@Nonnull final Consumer<?> consumer) {
+    public void unregister(final Consumer<?> consumer) {
         synchronized (this.handlers) {
             Map<Class<?>, List<AHandler>> checked = new HashMap<>();
             for (Map.Entry<Class<?>, List<AHandler>> entry : this.handlers.entrySet()) {
@@ -444,7 +445,7 @@ public class LambdaManager {
      * @param consumer The {@link Consumer} to unregister
      * @param events   The events from which the {@link Consumer} should be unregistered
      */
-    public void unregister(@Nonnull final Consumer<?> consumer, @Nonnull final Class<?>... events) {
+    public void unregister(final Consumer<?> consumer, final Class<?>... events) {
         if (events.length == 0) {
             this.unregister(consumer);
             return;

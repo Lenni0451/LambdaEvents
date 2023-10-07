@@ -5,14 +5,15 @@ import net.lenni0451.lambdaevents.AHandler;
 import net.lenni0451.lambdaevents.EventHandler;
 import net.lenni0451.lambdaevents.utils.EventUtils;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Method;
 
 /**
  * The {@link AHandler} implementation which calls the handler method using reflection.<br>
  * <b>Only for use if the method has no parameters.</b>
  */
+@ParametersAreNonnullByDefault
 public class VirtualReflectionHandler extends AHandler {
 
     private final Method method;
@@ -23,7 +24,7 @@ public class VirtualReflectionHandler extends AHandler {
      * @param annotation The {@link EventHandler} annotation of the handler method
      * @param method     The handler method
      */
-    public VirtualReflectionHandler(@Nonnull Class<?> owner, @Nullable Object instance, @Nonnull EventHandler annotation, @Nonnull final Method method) {
+    public VirtualReflectionHandler(Class<?> owner, @Nullable Object instance, EventHandler annotation, final Method method) {
         super(owner, instance, annotation);
         this.method = method;
     }

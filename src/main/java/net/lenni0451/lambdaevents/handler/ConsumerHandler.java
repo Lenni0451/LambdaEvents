@@ -5,13 +5,16 @@ import net.lenni0451.lambdaevents.EventHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.function.Consumer;
 
 /**
  * The {@link AHandler} implementation for {@link Consumer} events with an event parameter.
  */
+@ParametersAreNonnullByDefault
 public class ConsumerHandler extends AHandler {
 
+    @Nonnull
     private final Consumer<Object> consumer;
 
     /**
@@ -21,7 +24,7 @@ public class ConsumerHandler extends AHandler {
      * @param consumer   The handler consumer
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public ConsumerHandler(@Nonnull final Class<?> owner, @Nullable final Object instance, @Nonnull final EventHandler annotation, @Nonnull final Consumer consumer) {
+    public ConsumerHandler(final Class<?> owner, @Nullable final Object instance, final EventHandler annotation, final Consumer consumer) {
         super(owner, instance, annotation);
         this.consumer = consumer;
     }

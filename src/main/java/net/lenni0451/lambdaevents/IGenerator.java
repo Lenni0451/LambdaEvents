@@ -2,11 +2,13 @@ package net.lenni0451.lambdaevents;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Method;
 
 /**
  * The generator interface for the {@link AHandler} implementations.
  */
+@ParametersAreNonnullByDefault
 public interface IGenerator {
 
     /**
@@ -20,7 +22,7 @@ public interface IGenerator {
      * @return The generated handler
      */
     @Nonnull
-    AHandler generate(@Nonnull final Class<?> owner, @Nullable final Object instance, @Nonnull final EventHandler annotation, @Nonnull final Method method, @Nonnull final Class<?> arg);
+    AHandler generate(final Class<?> owner, @Nullable final Object instance, final EventHandler annotation, final Method method, final Class<?> arg);
 
     /**
      * Generate an {@link AHandler} for the given method without an event parameter.
@@ -32,6 +34,6 @@ public interface IGenerator {
      * @return The generated handler
      */
     @Nonnull
-    AHandler generateVirtual(@Nonnull final Class<?> owner, @Nullable final Object instance, @Nonnull final EventHandler annotation, @Nonnull final Method method);
+    AHandler generateVirtual(final Class<?> owner, @Nullable final Object instance, final EventHandler annotation, final Method method);
 
 }

@@ -8,6 +8,7 @@ import net.lenni0451.reflect.wrapper.ASMWrapper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
@@ -18,21 +19,22 @@ import static net.lenni0451.reflect.wrapper.ASMWrapper.*;
  * <b>This requires the <a href="https://github.com/Lenni0451/Reflect">Reflect library</a> to work (<a href="https://mvnrepository.com/artifact/net.lenni0451/Reflect">maven</a>)!</b><br>
  * <b>This also requires <a href="https://asm.ow2.io/">ASM</a> to work (<a href="https://mvnrepository.com/artifact/org.ow2.asm/asm">maven</a>)!</b>
  */
+@ParametersAreNonnullByDefault
 public class ASMGenerator implements IGenerator {
 
     @Nonnull
     @Override
-    public AHandler generate(@Nonnull Class<?> owner, @Nullable Object instance, @Nonnull EventHandler annotation, @Nonnull Method method, @Nonnull Class<?> arg) {
+    public AHandler generate(Class<?> owner, @Nullable Object instance, EventHandler annotation, Method method, Class<?> arg) {
         return this.define(owner, instance, annotation, method, arg);
     }
 
     @Nonnull
     @Override
-    public AHandler generateVirtual(@Nonnull Class<?> owner, @Nullable Object instance, @Nonnull EventHandler annotation, @Nonnull Method method) {
+    public AHandler generateVirtual(Class<?> owner, @Nullable Object instance, EventHandler annotation, Method method) {
         return this.define(owner, instance, annotation, method, null);
     }
 
-    private AHandler define(Class<?> owner, Object instance, EventHandler annotation, Method method, Class<?> arg) {
+    private AHandler define(Class<?> owner, @Nullable Object instance, EventHandler annotation, Method method, @Nullable Class<?> arg) {
         String handlerName = slash(owner.getPackage().getName()) + "/LambdaEvents$ASMHandler";
         ASMWrapper w = ASMWrapper.create(opcode("ACC_PUBLIC"), handlerName, null, slash(AHandler.class), null);
         this.makeConstructor(handlerName, w, instance);
@@ -42,7 +44,7 @@ public class ASMGenerator implements IGenerator {
         return RStream.of(handlerClazz).constructors().by(0).newInstance(owner, instance, annotation);
     }
 
-    private void makeConstructor(final String handlerName, final ASMWrapper w, final Object instance) {
+    private void makeConstructor(final String handlerName, final ASMWrapper w, @Nullable final Object instance) {
         String desc = desc(new Class[]{Class.class, Object.class, EventHandler.class}, void.class);
         boolean isStatic = instance == null;
         if (!isStatic) w.visitField(opcode("ACC_PRIVATE"), "instance", desc(instance.getClass()), null, null);
@@ -65,7 +67,7 @@ public class ASMGenerator implements IGenerator {
         mv.visitEnd();
     }
 
-    private void makeCaller(final String handlerName, final ASMWrapper w, final Class<?> owner, final Object instance, final Method method, final Class<?> arg) {
+    private void makeCaller(final String handlerName, final ASMWrapper w, final Class<?> owner, @Nullable final Object instance, final Method method, @Nullable final Class<?> arg) {
         boolean isStatic = instance == null;
         boolean isInterface = Modifier.isInterface(owner.getModifiers());
 

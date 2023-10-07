@@ -1,10 +1,11 @@
 package net.lenni0451.lambdaevents;
 
-import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * An interface to handle all exceptions thrown by event handlers.
  */
+@ParametersAreNonnullByDefault
 public interface IExceptionHandler {
 
     /**
@@ -14,6 +15,6 @@ public interface IExceptionHandler {
      * @param event   The instance of the event which caused the exception
      * @param t       The thrown exception
      */
-    void handle(@Nonnull final AHandler handler, @Nonnull final Object event, @Nonnull final Throwable t);
+    void handle(final AHandler handler, final Object event, final Throwable t);
 
 }

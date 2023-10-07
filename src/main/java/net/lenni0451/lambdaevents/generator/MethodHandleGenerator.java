@@ -10,6 +10,7 @@ import net.lenni0451.lambdaevents.utils.LookupUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
@@ -17,6 +18,7 @@ import java.lang.reflect.Method;
 /**
  * The {@link IGenerator} implementation which calls the handler method using method handles.
  */
+@ParametersAreNonnullByDefault
 public class MethodHandleGenerator implements IGenerator {
 
     private final MethodHandles.Lookup lookup;
@@ -31,26 +33,26 @@ public class MethodHandleGenerator implements IGenerator {
     /**
      * @param lookup The {@link MethodHandles.Lookup} to use
      */
-    public MethodHandleGenerator(@Nonnull final MethodHandles.Lookup lookup) {
+    public MethodHandleGenerator(final MethodHandles.Lookup lookup) {
         this.lookup = lookup;
     }
 
     @Override
     @Nonnull
-    public AHandler generate(@Nonnull Class<?> owner, @Nullable Object instance, @Nonnull EventHandler annotation, @Nonnull Method method, @Nonnull Class<?> arg) {
+    public AHandler generate(Class<?> owner, @Nullable Object instance, EventHandler annotation, Method method, Class<?> arg) {
         MethodHandle handle = this.getHandle(owner, instance, method);
         return new MethodHandleHandler(owner, instance, annotation, handle);
     }
 
     @Override
     @Nonnull
-    public AHandler generateVirtual(@Nonnull Class<?> owner, @Nullable Object instance, @Nonnull EventHandler annotation, @Nonnull Method method) {
+    public AHandler generateVirtual(Class<?> owner, @Nullable Object instance, EventHandler annotation, Method method) {
         MethodHandle handle = this.getHandle(owner, instance, method);
         return new VirtualMethodHandleHandler(owner, instance, annotation, handle);
     }
 
     @SneakyThrows
-    private MethodHandle getHandle(final Class<?> owner, final Object instance, final Method method) {
+    private MethodHandle getHandle(final Class<?> owner, @Nullable final Object instance, final Method method) {
         MethodHandle handle = LookupUtils.resolveLookup(this.lookup, owner).unreflect(method);
         if (instance != null) handle = handle.bindTo(instance);
         return handle;

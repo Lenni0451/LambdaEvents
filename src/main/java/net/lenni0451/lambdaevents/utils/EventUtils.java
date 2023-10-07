@@ -3,6 +3,7 @@ package net.lenni0451.lambdaevents.utils;
 import net.lenni0451.lambdaevents.EventHandler;
 
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+@ParametersAreNonnullByDefault
 public class EventUtils {
 
     /**
@@ -29,7 +31,7 @@ public class EventUtils {
      * @return The list of all found methods
      */
     @Nonnull
-    public static List<MethodHandler> getMethods(@Nonnull final Class<?> owner, @Nonnull final Predicate<Method> accept, final boolean registerSuperHandler) {
+    public static List<MethodHandler> getMethods(final Class<?> owner, final Predicate<Method> accept, final boolean registerSuperHandler) {
         List<MethodHandler> handler = new ArrayList<>();
         Class<?> current = owner;
         do {
@@ -54,7 +56,7 @@ public class EventUtils {
      * @return The list of all found fields
      */
     @Nonnull
-    public static List<FieldHandler> getFields(@Nonnull final Class<?> owner, @Nonnull final Predicate<Field> accept, final boolean registerSuperHandler) {
+    public static List<FieldHandler> getFields(final Class<?> owner, final Predicate<Field> accept, final boolean registerSuperHandler) {
         List<FieldHandler> handler = new ArrayList<>();
         Class<?> current = owner;
         do {
@@ -77,7 +79,7 @@ public class EventUtils {
      * @param method     The method to check
      * @throws IllegalStateException If the method is not valid
      */
-    public static void verify(@Nonnull final Class<?> owner, @Nonnull final EventHandler annotation, @Nonnull final Method method) {
+    public static void verify(final Class<?> owner, final EventHandler annotation, final Method method) {
         if (Modifier.isAbstract(method.getModifiers())) throw new IllegalStateException("Method '" + method.getName() + "' in class '" + owner.getName() + "' is abstract");
         if (Modifier.isNative(method.getModifiers())) throw new IllegalStateException("Method '" + method.getName() + "' in class '" + owner.getName() + "' is native");
         if (annotation.events().length == 0 && method.getParameterCount() != 1) {
@@ -95,7 +97,7 @@ public class EventUtils {
      * @param annotation The {@link EventHandler} annotation of the field
      * @param field      The field to check
      */
-    public static void verify(@Nonnull final Class<?> owner, @Nonnull final EventHandler annotation, @Nonnull final Field field) {
+    public static void verify(final Class<?> owner, final EventHandler annotation, final Field field) {
         if (Runnable.class.isAssignableFrom(field.getType())) {
             if (annotation.events().length == 0) throw new IllegalStateException("Field '" + field.getName() + "' in class '" + owner.getName() + "' has no virtual events");
         } else if (Consumer.class.isAssignableFrom(field.getType())) {
@@ -123,7 +125,7 @@ public class EventUtils {
      * @return The list of all found events
      */
     @Nonnull
-    public static Class<?>[] getEvents(@Nonnull final EventHandler annotation, @Nonnull final Method method, @Nonnull final Predicate<Class<?>> accept) {
+    public static Class<?>[] getEvents(final EventHandler annotation, final Method method, final Predicate<Class<?>> accept) {
         if (method.getParameterCount() == 1) {
             Class<?> param = method.getParameterTypes()[0];
             if (!accept.test(param)) return new Class[0];
@@ -142,7 +144,7 @@ public class EventUtils {
      * @return The list of all found events
      */
     @Nonnull
-    public static Class<?>[] getEvents(@Nonnull final EventHandler annotation, @Nonnull final Field field, @Nonnull final Predicate<Class<?>> accept) {
+    public static Class<?>[] getEvents(final EventHandler annotation, final Field field, final Predicate<Class<?>> accept) {
         List<Class<?>> events = new ArrayList<>();
         Collections.addAll(events, annotation.events());
         if (Consumer.class.isAssignableFrom(field.getType()) && events.isEmpty()) {
@@ -217,11 +219,14 @@ public class EventUtils {
     /**
      * A wrapper class for an event handler method with it's {@link EventHandler} annotation.
      */
+    @ParametersAreNonnullByDefault
     public static class MethodHandler {
+        @Nonnull
         private final EventHandler annotation;
+        @Nonnull
         private final Method method;
 
-        private MethodHandler(@Nonnull final EventHandler annotation, @Nonnull final Method method) {
+        private MethodHandler(final EventHandler annotation, final Method method) {
             this.annotation = annotation;
             this.method = method;
         }
@@ -241,10 +246,12 @@ public class EventUtils {
      * A wrapper class for an event handler field with it's {@link EventHandler} annotation.
      */
     public static class FieldHandler {
+        @Nonnull
         private final EventHandler annotation;
+        @Nonnull
         private final Field field;
 
-        private FieldHandler(@Nonnull final EventHandler annotation, @Nonnull final Field field) {
+        private FieldHandler(final EventHandler annotation, final Field field) {
             this.annotation = annotation;
             this.field = field;
         }

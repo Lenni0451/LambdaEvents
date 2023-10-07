@@ -5,12 +5,15 @@ import net.lenni0451.lambdaevents.EventHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * The {@link AHandler} implementation for {@link Runnable} events without an event parameter.
  */
+@ParametersAreNonnullByDefault
 public class RunnableHandler extends AHandler {
 
+    @Nonnull
     private final Runnable runnable;
 
     /**
@@ -19,7 +22,7 @@ public class RunnableHandler extends AHandler {
      * @param annotation The {@link EventHandler} annotation of the handler method
      * @param runnable   The handler runnable
      */
-    public RunnableHandler(@Nonnull final Class<?> owner, @Nullable final Object instance, @Nonnull final EventHandler annotation, @Nonnull final Runnable runnable) {
+    public RunnableHandler(final Class<?> owner, @Nullable final Object instance, final EventHandler annotation, final Runnable runnable) {
         super(owner, instance, annotation);
         this.runnable = runnable;
     }
