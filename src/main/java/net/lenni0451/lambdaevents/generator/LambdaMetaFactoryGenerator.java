@@ -1,11 +1,11 @@
 package net.lenni0451.lambdaevents.generator;
 
+import lombok.SneakyThrows;
 import net.lenni0451.lambdaevents.AHandler;
 import net.lenni0451.lambdaevents.EventHandler;
 import net.lenni0451.lambdaevents.IGenerator;
 import net.lenni0451.lambdaevents.handler.ConsumerHandler;
 import net.lenni0451.lambdaevents.handler.RunnableHandler;
-import net.lenni0451.lambdaevents.utils.EventUtils;
 import net.lenni0451.lambdaevents.utils.LookupUtils;
 
 import javax.annotation.Nonnull;
@@ -53,41 +53,33 @@ public class LambdaMetaFactoryGenerator implements IGenerator {
         return new RunnableHandler(owner, instance, annotation, runnable);
     }
 
+    @SneakyThrows
     private MethodHandle getHandle(final MethodHandles.Lookup lookup, final Method method) {
-        try {
-            return lookup.unreflect(method);
-        } catch (Throwable t) {
-            EventUtils.sneak(t);
-            throw new RuntimeException();
-        }
+        return lookup.unreflect(method);
     }
 
+    @SneakyThrows
     private <T> T generate(final Class<?> owner, final Object instance, final Method method, final Class<T> interfaceClass, final String interfaceMethod, final MethodType interfaceType) {
-        try {
-            MethodHandles.Lookup lookup = LookupUtils.resolveLookup(this.lookup, owner);
-            MethodHandle handle = this.getHandle(lookup, method);
-            if (instance == null) {
-                return (T) LambdaMetafactory.metafactory(
-                        lookup,
-                        interfaceMethod,
-                        MethodType.methodType(interfaceClass),
-                        interfaceType,
-                        handle,
-                        handle.type()
-                ).getTarget().invoke();
-            } else {
-                return (T) LambdaMetafactory.metafactory(
-                        lookup,
-                        interfaceMethod,
-                        MethodType.methodType(interfaceClass, instance.getClass()),
-                        interfaceType,
-                        handle,
-                        handle.type().dropParameterTypes(0, 1)
-                ).getTarget().invoke(instance);
-            }
-        } catch (Throwable t) {
-            EventUtils.sneak(t);
-            throw new RuntimeException();
+        MethodHandles.Lookup lookup = LookupUtils.resolveLookup(this.lookup, owner);
+        MethodHandle handle = this.getHandle(lookup, method);
+        if (instance == null) {
+            return (T) LambdaMetafactory.metafactory(
+                    lookup,
+                    interfaceMethod,
+                    MethodType.methodType(interfaceClass),
+                    interfaceType,
+                    handle,
+                    handle.type()
+            ).getTarget().invoke();
+        } else {
+            return (T) LambdaMetafactory.metafactory(
+                    lookup,
+                    interfaceMethod,
+                    MethodType.methodType(interfaceClass, instance.getClass()),
+                    interfaceType,
+                    handle,
+                    handle.type().dropParameterTypes(0, 1)
+            ).getTarget().invoke(instance);
         }
     }
 

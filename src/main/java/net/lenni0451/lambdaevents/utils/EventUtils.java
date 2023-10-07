@@ -155,18 +155,6 @@ public class EventUtils {
     }
 
     /**
-     * Sneaky throw the given exception without declaring it.
-     *
-     * @param t   The exception to throw
-     * @param <T> The type to confuse the compiler
-     * @throws T The given exception
-     */
-    @SuppressWarnings("unchecked")
-    public static <T extends Throwable> void sneak(@Nonnull final Throwable t) throws T {
-        throw (T) t;
-    }
-
-    /**
      * Create a new {@link EventHandler} instance with the given priority.
      *
      * @param priority The priority of the handler

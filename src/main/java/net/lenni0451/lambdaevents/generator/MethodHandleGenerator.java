@@ -1,11 +1,11 @@
 package net.lenni0451.lambdaevents.generator;
 
+import lombok.SneakyThrows;
 import net.lenni0451.lambdaevents.AHandler;
 import net.lenni0451.lambdaevents.EventHandler;
 import net.lenni0451.lambdaevents.IGenerator;
 import net.lenni0451.lambdaevents.handler.methodhandle.MethodHandleHandler;
 import net.lenni0451.lambdaevents.handler.methodhandle.VirtualMethodHandleHandler;
-import net.lenni0451.lambdaevents.utils.EventUtils;
 import net.lenni0451.lambdaevents.utils.LookupUtils;
 
 import javax.annotation.Nonnull;
@@ -49,15 +49,11 @@ public class MethodHandleGenerator implements IGenerator {
         return new VirtualMethodHandleHandler(owner, instance, annotation, handle);
     }
 
+    @SneakyThrows
     private MethodHandle getHandle(final Class<?> owner, final Object instance, final Method method) {
-        try {
-            MethodHandle handle = LookupUtils.resolveLookup(this.lookup, owner).unreflect(method);
-            if (instance != null) handle = handle.bindTo(instance);
-            return handle;
-        } catch (Throwable t) {
-            EventUtils.sneak(t);
-            throw new RuntimeException();
-        }
+        MethodHandle handle = LookupUtils.resolveLookup(this.lookup, owner).unreflect(method);
+        if (instance != null) handle = handle.bindTo(instance);
+        return handle;
     }
 
 }

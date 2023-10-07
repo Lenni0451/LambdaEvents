@@ -1,6 +1,5 @@
 package net.lenni0451.lambdaevents;
 
-import net.lenni0451.lambdaevents.utils.EventUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -8,6 +7,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.io.Serializable;
 
 import static net.lenni0451.lambdaevents.TestManager.DATA_SOURCE;
+import static net.lenni0451.lambdaevents.TestManager.throwingExceptionHandler;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class NonStaticParentCallTest {
@@ -31,7 +31,7 @@ public class NonStaticParentCallTest {
     @MethodSource(DATA_SOURCE)
     void call(final LambdaManager manager) {
         assertDoesNotThrow(() -> manager.register(this));
-        manager.setExceptionHandler((handler, event, t) -> EventUtils.sneak(t));
+        manager.setExceptionHandler(throwingExceptionHandler());
         manager.call(new RuntimeException());
 
         assertFalse(this.calledObject);
@@ -45,7 +45,7 @@ public class NonStaticParentCallTest {
     @MethodSource(DATA_SOURCE)
     void callParents(final LambdaManager manager) {
         assertDoesNotThrow(() -> manager.register(this));
-        manager.setExceptionHandler((handler, event, t) -> EventUtils.sneak(t));
+        manager.setExceptionHandler(throwingExceptionHandler());
         manager.callParents(new RuntimeException());
 
         assertTrue(this.calledObject);
@@ -59,7 +59,7 @@ public class NonStaticParentCallTest {
     @MethodSource(DATA_SOURCE)
     void alwaysCallParents(final LambdaManager manager) {
         assertDoesNotThrow(() -> manager.register(this));
-        manager.setExceptionHandler((handler, event, t) -> EventUtils.sneak(t));
+        manager.setExceptionHandler(throwingExceptionHandler());
         manager.setAlwaysCallParents(true);
         manager.callParents(new RuntimeException());
 

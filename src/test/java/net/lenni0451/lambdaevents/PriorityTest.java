@@ -1,6 +1,5 @@
 package net.lenni0451.lambdaevents;
 
-import net.lenni0451.lambdaevents.utils.EventUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -8,6 +7,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.function.Consumer;
 
 import static net.lenni0451.lambdaevents.TestManager.DATA_SOURCE;
+import static net.lenni0451.lambdaevents.TestManager.throwingExceptionHandler;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class PriorityTest {
@@ -31,7 +31,7 @@ public class PriorityTest {
     @MethodSource(DATA_SOURCE)
     void registered(final LambdaManager manager) {
         assertDoesNotThrow(() -> manager.register(this));
-        manager.setExceptionHandler((handler, event, t) -> EventUtils.sneak(t));
+        manager.setExceptionHandler(throwingExceptionHandler());
         manager.call("Test");
 
         assertTrue(this.calledVirtualRunnable);

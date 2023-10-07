@@ -1,5 +1,6 @@
 package net.lenni0451.lambdaevents.handler.reflection;
 
+import lombok.SneakyThrows;
 import net.lenni0451.lambdaevents.AHandler;
 import net.lenni0451.lambdaevents.EventHandler;
 import net.lenni0451.lambdaevents.utils.EventUtils;
@@ -28,12 +29,9 @@ public class VirtualReflectionHandler extends AHandler {
     }
 
     @Override
+    @SneakyThrows
     public void call(Object event) {
-        try {
-            this.method.invoke(this.getInstance());
-        } catch (Throwable t) {
-            EventUtils.sneak(t);
-        }
+        this.method.invoke(this.getInstance());
     }
 
     @Override

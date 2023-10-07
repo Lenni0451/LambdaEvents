@@ -1,5 +1,7 @@
 package net.lenni0451.lambdaevents.utils;
 
+import lombok.SneakyThrows;
+
 import javax.annotation.Nonnull;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -23,28 +25,24 @@ public class LookupUtils {
      * @return The lookup
      */
     @Nonnull
+    @SneakyThrows
     public static MethodHandles.Lookup getIn(@Nonnull final ClassLoader classLoader) {
         synchronized (loaders) {
-            try {
-                LookupGetterLoader loader = loaders.computeIfAbsent(classLoader, LookupGetterLoader::new);
-                Class<?> lookupGetter;
-                if (!loader.isDefined(LookupGetter.class.getName())) {
-                    try (InputStream is = LookupGetter.class.getClassLoader().getResourceAsStream(LookupGetter.class.getName().replace('.', '/') + ".class")) {
-                        if (is == null) throw new ClassNotFoundException(LookupGetter.class.getName());
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        byte[] buf = new byte[1024];
-                        int len;
-                        while ((len = is.read(buf)) != -1) baos.write(buf, 0, len);
-                        lookupGetter = loader.define(LookupGetter.class.getName(), baos.toByteArray());
-                    }
-                } else {
-                    lookupGetter = loader.loadClass(LookupGetter.class.getName());
+            LookupGetterLoader loader = loaders.computeIfAbsent(classLoader, LookupGetterLoader::new);
+            Class<?> lookupGetter;
+            if (!loader.isDefined(LookupGetter.class.getName())) {
+                try (InputStream is = LookupGetter.class.getClassLoader().getResourceAsStream(LookupGetter.class.getName().replace('.', '/') + ".class")) {
+                    if (is == null) throw new ClassNotFoundException(LookupGetter.class.getName());
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    byte[] buf = new byte[1024];
+                    int len;
+                    while ((len = is.read(buf)) != -1) baos.write(buf, 0, len);
+                    lookupGetter = loader.define(LookupGetter.class.getName(), baos.toByteArray());
                 }
-                return (MethodHandles.Lookup) lookupGetter.getDeclaredMethod("get").invoke(null);
-            } catch (Throwable t) {
-                EventUtils.sneak(t);
-                throw new RuntimeException();
+            } else {
+                lookupGetter = loader.loadClass(LookupGetter.class.getName());
             }
+            return (MethodHandles.Lookup) lookupGetter.getDeclaredMethod("get").invoke(null);
         }
     }
 
