@@ -36,4 +36,9 @@ public class ReflectionHandler extends AHandler {
         }
     }
 
+    @Override
+    public String toString() {
+        return "reflection: " + this.getOwner().getName() + " -> " + EventUtils.toString(this.method);
+    }
+
 }

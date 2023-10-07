@@ -4,6 +4,8 @@ import net.lenni0451.lambdaevents.EventHandler;
 
 import javax.annotation.Nonnull;
 import java.lang.annotation.Annotation;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -188,6 +190,39 @@ public class EventUtils {
                 return new Class[0];
             }
         };
+    }
+
+    /**
+     * Convert a method to a string.
+     *
+     * @param method The method to convert
+     * @return The string representation of the method
+     */
+    public static String toString(final Method method) {
+        Class<?> returnType = method.getReturnType();
+        Class<?>[] params = method.getParameterTypes();
+        StringBuilder out = new StringBuilder().append(method.getName()).append('(');
+        for (int i = 0; i < params.length; i++) {
+            out.append(params[i].getSimpleName());
+            if (i != params.length - 1) out.append(", ");
+        }
+        return out.append(")").append(returnType.getSimpleName()).toString();
+    }
+
+    /**
+     * Convert a method handle to a string.
+     *
+     * @param methodHandle The method to convert
+     * @return The string representation of the method
+     */
+    public static String toString(final MethodHandle methodHandle) {
+        MethodType type = methodHandle.type();
+        StringBuilder out = new StringBuilder().append('(');
+        for (int i = 0; i < type.parameterCount(); i++) {
+            out.append(type.parameterType(i).getSimpleName());
+            if (i != type.parameterCount() - 1) out.append(", ");
+        }
+        return out.append(")").append(type.returnType().getSimpleName()).toString();
     }
 
 

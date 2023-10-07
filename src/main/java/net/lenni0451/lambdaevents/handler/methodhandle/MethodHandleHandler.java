@@ -36,4 +36,9 @@ public class MethodHandleHandler extends AHandler {
         }
     }
 
+    @Override
+    public String toString() {
+        return "methodHandle: " + this.getOwner().getName() + " -> " + EventUtils.toString(this.methodHandle);
+    }
+
 }

@@ -61,4 +61,7 @@ public abstract class AHandler {
      */
     public abstract void call(final Object event);
 
+    @Override
+    public abstract String toString();
+
 }

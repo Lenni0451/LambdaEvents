@@ -472,4 +472,15 @@ public class LambdaManager {
         this.handlerArrays.put(event, handlers.toArray(new AHandler[0]));
     }
 
+    @Override
+    public String toString() {
+        StringBuilder out = new StringBuilder("LambdaManager{\n");
+        for (Map.Entry<Class<?>, AHandler[]> entry : this.handlerArrays.entrySet()) {
+            out.append("\t").append(entry.getKey().getName()).append("[\n");
+            for (AHandler handler : entry.getValue()) out.append("\t\t").append(handler.toString()).append("\n");
+            out.append("\t]\n");
+        }
+        return out.append("}").toString();
+    }
+
 }

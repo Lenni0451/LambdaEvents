@@ -36,4 +36,9 @@ public class VirtualMethodHandleHandler extends AHandler {
         }
     }
 
+    @Override
+    public String toString() {
+        return "virtualMethodHandle: " + this.getOwner().getName() + " -> " + EventUtils.toString(this.methodHandle);
+    }
+
 }

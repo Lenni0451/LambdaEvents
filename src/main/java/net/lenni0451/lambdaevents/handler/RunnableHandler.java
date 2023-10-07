@@ -37,4 +37,9 @@ public class RunnableHandler extends AHandler {
         this.runnable.run();
     }
 
+    @Override
+    public String toString() {
+        return "runnable: " + this.getOwner().getName() + " -> " + this.runnable.getClass().getName();
+    }
+
 }

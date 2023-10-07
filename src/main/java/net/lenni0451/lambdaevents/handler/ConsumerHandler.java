@@ -39,4 +39,9 @@ public class ConsumerHandler extends AHandler {
         this.consumer.accept(event);
     }
 
+    @Override
+    public String toString() {
+        return "consumer: " + this.getOwner().getName() + " -> " + this.consumer.getClass().getName();
+    }
+
 }

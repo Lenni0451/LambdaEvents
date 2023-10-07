@@ -36,4 +36,9 @@ public class VirtualReflectionHandler extends AHandler {
         }
     }
 
+    @Override
+    public String toString() {
+        return "virtualReflection: " + this.getOwner().getName() + " -> " + EventUtils.toString(this.method);
+    }
+
 }
