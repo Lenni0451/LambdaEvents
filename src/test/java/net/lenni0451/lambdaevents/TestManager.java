@@ -5,7 +5,6 @@ import net.lenni0451.lambdaevents.generator.ASMGenerator;
 import net.lenni0451.lambdaevents.generator.LambdaMetaFactoryGenerator;
 import net.lenni0451.lambdaevents.generator.MethodHandleGenerator;
 import net.lenni0451.lambdaevents.generator.ReflectionGenerator;
-import net.lenni0451.lambdaevents.handler.ExceptionHandler;
 
 public class TestManager {
 
@@ -20,12 +19,12 @@ public class TestManager {
         };
     }
 
-    public static ExceptionHandler throwingExceptionHandler() {
+    public static IExceptionHandler throwingExceptionHandler() {
         return new ThrowingExceptionHandler();
     }
 
 
-    private static class ThrowingExceptionHandler implements ExceptionHandler {
+    private static class ThrowingExceptionHandler implements IExceptionHandler {
         @Override
         @SneakyThrows
         public void handle(AHandler handler, Object event, Throwable t) {

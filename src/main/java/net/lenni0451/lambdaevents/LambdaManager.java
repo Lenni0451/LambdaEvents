@@ -1,7 +1,6 @@
 package net.lenni0451.lambdaevents;
 
 import net.lenni0451.lambdaevents.handler.ConsumerHandler;
-import net.lenni0451.lambdaevents.handler.ExceptionHandler;
 import net.lenni0451.lambdaevents.handler.RunnableHandler;
 import net.lenni0451.lambdaevents.utils.EventException;
 import net.lenni0451.lambdaevents.utils.EventUtils;
@@ -51,7 +50,7 @@ public class LambdaManager {
     private final Supplier<List<AHandler>> listSupplier;
     private final IGenerator generator;
 
-    private ExceptionHandler exceptionHandler = (handler, event, t) -> {
+    private IExceptionHandler exceptionHandler = (handler, event, t) -> {
         new EventException("Exception occurred in '" + event.getClass().getSimpleName() + "' handler in '" + handler.getOwner().getName() + "'", t).printStackTrace();
     };
     private boolean registerSuperHandler = false;
@@ -79,11 +78,11 @@ public class LambdaManager {
     }
 
     /**
-     * Set the {@link ExceptionHandler} which is used to handle thrown exceptions in event handlers.
+     * Set the {@link IExceptionHandler} which is used to handle thrown exceptions in event handlers.
      *
-     * @param exceptionHandler The {@link ExceptionHandler} which should be used to handle exceptions
+     * @param exceptionHandler The {@link IExceptionHandler} which should be used to handle exceptions
      */
-    public void setExceptionHandler(@Nonnull final ExceptionHandler exceptionHandler) {
+    public void setExceptionHandler(@Nonnull final IExceptionHandler exceptionHandler) {
         this.exceptionHandler = exceptionHandler;
     }
 
