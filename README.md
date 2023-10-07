@@ -27,13 +27,11 @@ Fast and modular event library for Java.
 
 
 ## Releases
-To use LambdaEvents with Gradle/Maven you can follow the instructions on my [maven server](https://maven.lenni0451.net/#/releases/net/lenni0451/LambdaEvents).
+To use LambdaEvents with Gradle/Maven you can follow the instructions on [maven central](https://mvnrepository.com/artifact/net.lenni0451/LambdaEvents) or my [maven server](https://maven.lenni0451.net/#/releases/net/lenni0451/LambdaEvents).
 ### Gradle Template
 ```groovy
 repositories {
-    maven {
-        url "https://maven.lenni0451.net/releases"
-    }
+    mavenCentral()
 }
 
 dependencies {
@@ -42,19 +40,13 @@ dependencies {
 ```
 ### Maven Template
 ```xml
-<repository>
-    <id>lenni0451-maven-releases</id>
-    <name>Lenni0451 Maven Repository</name>
-    <url>https://maven.lenni0451.net/releases</url>
-</repository>
-
 <dependency>
     <groupId>net.lenni0451</groupId>
     <artifactId>LambdaEvents</artifactId>
     <version>x.x.x</version>
 </dependency>
 ```
-You should check the [maven server](https://maven.lenni0451.net/#/releases/net/lenni0451/LambdaEvents) for the latest version.
+You should check [maven central](https://mvnrepository.com/artifact/net.lenni0451/LambdaEvents) or my [maven server](https://maven.lenni0451.net/#/releases/net/lenni0451/LambdaEvents) for the latest version.
 
 ### Jar File
 You can download the jar file from my [Jenkins server](https://build.lenni0451.net/job/LambdaEvents/).\
