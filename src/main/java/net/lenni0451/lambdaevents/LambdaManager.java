@@ -88,7 +88,8 @@ public class LambdaManager {
     }
 
     /**
-     * Register all event handlers from super classes.
+     * Register all event handlers from super classes.<br>
+     * <b>This does not include static event handlers!</b>
      *
      * @param registerSuperHandler If super classes should be scanned for event handlers
      */
@@ -186,12 +187,12 @@ public class LambdaManager {
      */
     public void register(@Nullable final Class<?> event, final Class<?> owner) {
         for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner, method -> Modifier.isStatic(method.getModifiers()), this.registerSuperHandler)) {
-            if (event == null) this.registerMethod(owner, null, handler.getAnnotation(), handler.getMethod(), e -> true);
-            else this.registerMethod(owner, null, handler.getAnnotation(), handler.getMethod(), e -> e.equals(event));
+            if (event == null) this.registerMethod(handler.getOwner(), null, handler.getAnnotation(), handler.getMethod(), e -> true);
+            else this.registerMethod(handler.getOwner(), null, handler.getAnnotation(), handler.getMethod(), e -> e.equals(event));
         }
         for (EventUtils.FieldHandler handler : EventUtils.getFields(owner, field -> Modifier.isStatic(field.getModifiers()), this.registerSuperHandler)) {
-            if (event == null) this.registerField(owner, null, handler.getAnnotation(), handler.getField(), e -> true);
-            else this.registerField(owner, null, handler.getAnnotation(), handler.getField(), e -> e.equals(event));
+            if (event == null) this.registerField(handler.getOwner(), null, handler.getAnnotation(), handler.getField(), e -> true);
+            else this.registerField(handler.getOwner(), null, handler.getAnnotation(), handler.getField(), e -> e.equals(event));
         }
     }
 
@@ -212,12 +213,12 @@ public class LambdaManager {
      */
     public void register(@Nullable final Class<?> event, final Object owner) {
         for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner.getClass(), method -> !Modifier.isStatic(method.getModifiers()), this.registerSuperHandler)) {
-            if (event == null) this.registerMethod(owner.getClass(), owner, handler.getAnnotation(), handler.getMethod(), e -> true);
-            else this.registerMethod(owner.getClass(), owner, handler.getAnnotation(), handler.getMethod(), e -> e.equals(event));
+            if (event == null) this.registerMethod(handler.getOwner(), owner, handler.getAnnotation(), handler.getMethod(), e -> true);
+            else this.registerMethod(handler.getOwner(), owner, handler.getAnnotation(), handler.getMethod(), e -> e.equals(event));
         }
-        for (EventUtils.FieldHandler handler : EventUtils.getFields(owner.getClass(), field -> !Modifier.isStatic(field.getModifiers()), this.registerSuperHandler)) {
-            if (event == null) this.registerField(owner.getClass(), owner, handler.getAnnotation(), handler.getField(), e -> true);
-            else this.registerField(owner.getClass(), owner, handler.getAnnotation(), handler.getField(), e -> e.equals(event));
+        for (EventUtils.FieldHandler handler : EventUtils.getFields(owner.getClass(), field -> !Modifier.isStatic(field.getModifiers()), false)) {
+            if (event == null) this.registerField(handler.getOwner(), owner, handler.getAnnotation(), handler.getField(), e -> true);
+            else this.registerField(handler.getOwner(), owner, handler.getAnnotation(), handler.getField(), e -> e.equals(event));
         }
     }
 

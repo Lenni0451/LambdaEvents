@@ -1,5 +1,6 @@
 package net.lenni0451.lambdaevents.utils;
 
+import lombok.Data;
 import net.lenni0451.lambdaevents.EventHandler;
 
 import javax.annotation.Nonnull;
@@ -40,7 +41,7 @@ public class EventUtils {
                 if (annotation == null) continue;
                 if (!accept.test(method)) continue;
 
-                handler.add(new MethodHandler(annotation, method));
+                handler.add(new MethodHandler(current, annotation, method));
             }
         } while ((current = current.getSuperclass()) != null && registerSuperHandler);
         return handler;
@@ -65,7 +66,7 @@ public class EventUtils {
                 if (annotation == null) continue;
                 if (!accept.test(field)) continue;
 
-                handler.add(new FieldHandler(annotation, field));
+                handler.add(new FieldHandler(current, annotation, field));
             }
         } while ((current = current.getSuperclass()) != null && registerSuperHandler);
         return handler;
@@ -219,52 +220,29 @@ public class EventUtils {
     /**
      * A wrapper class for an event handler method with it's {@link EventHandler} annotation.
      */
+    @Data
     @ParametersAreNonnullByDefault
     public static class MethodHandler {
+        @Nonnull
+        private final Class<?> owner;
         @Nonnull
         private final EventHandler annotation;
         @Nonnull
         private final Method method;
-
-        private MethodHandler(final EventHandler annotation, final Method method) {
-            this.annotation = annotation;
-            this.method = method;
-        }
-
-        @Nonnull
-        public EventHandler getAnnotation() {
-            return this.annotation;
-        }
-
-        @Nonnull
-        public Method getMethod() {
-            return this.method;
-        }
     }
 
     /**
      * A wrapper class for an event handler field with it's {@link EventHandler} annotation.
      */
+    @Data
+    @ParametersAreNonnullByDefault
     public static class FieldHandler {
+        @Nonnull
+        private final Class<?> owner;
         @Nonnull
         private final EventHandler annotation;
         @Nonnull
         private final Field field;
-
-        private FieldHandler(final EventHandler annotation, final Field field) {
-            this.annotation = annotation;
-            this.field = field;
-        }
-
-        @Nonnull
-        public EventHandler getAnnotation() {
-            return this.annotation;
-        }
-
-        @Nonnull
-        public Field getField() {
-            return this.field;
-        }
     }
 
 }

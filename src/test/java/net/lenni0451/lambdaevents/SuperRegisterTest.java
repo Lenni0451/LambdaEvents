@@ -40,6 +40,26 @@ public class SuperRegisterTest {
         assertTrue(this.calledSuper);
     }
 
+    @ParameterizedTest
+    @MethodSource(DATA_SOURCE)
+    void withSuperUnregister(final LambdaManager manager) {
+        ThisClass instance = new ThisClass();
+
+        manager.setRegisterSuperHandler(true);
+        manager.register(instance);
+        manager.call("Test");
+
+        assertTrue(this.calledThis);
+        assertTrue(this.calledSuper);
+
+        this.reset();
+        manager.unregister(instance);
+        manager.call("Test");
+
+        assertFalse(this.calledThis);
+        assertFalse(this.calledSuper);
+    }
+
 
     public class ThisClass extends SuperClass {
         @EventHandler
