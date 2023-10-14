@@ -186,14 +186,7 @@ public class LambdaManager {
      * @param owner The class which should be scanned
      */
     public void register(@Nullable final Class<?> event, final Class<?> owner) {
-        for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner, method -> Modifier.isStatic(method.getModifiers()), false)) {
-            if (event == null) this.registerMethod(handler.getOwner(), null, handler.getAnnotation(), handler.getMethod(), e -> true);
-            else this.registerMethod(handler.getOwner(), null, handler.getAnnotation(), handler.getMethod(), e -> e.equals(event));
-        }
-        for (EventUtils.FieldHandler handler : EventUtils.getFields(owner, field -> Modifier.isStatic(field.getModifiers()), false)) {
-            if (event == null) this.registerField(handler.getOwner(), null, handler.getAnnotation(), handler.getField(), e -> true);
-            else this.registerField(handler.getOwner(), null, handler.getAnnotation(), handler.getField(), e -> e.equals(event));
-        }
+        this.register(event, owner, null, true, false);
     }
 
     /**
@@ -212,7 +205,7 @@ public class LambdaManager {
      * @param owner The object which should be scanned
      */
     public void register(@Nullable final Class<?> event, final Object owner) {
-        this.registerNonStatic(event, owner, this.registerSuperHandler);
+        this.register(event, owner.getClass(), owner, false, this.registerSuperHandler);
     }
 
     /**
@@ -233,7 +226,7 @@ public class LambdaManager {
      * @param owner The object which should be scanned
      */
     public void registerSuper(@Nullable final Class<?> event, final Object owner) {
-        this.registerNonStatic(event, owner, true);
+        this.register(event, owner.getClass(), owner, false, true);
     }
 
     /**
@@ -296,14 +289,14 @@ public class LambdaManager {
         }
     }
 
-    private void registerNonStatic(@Nullable final Class<?> event, final Object owner, final boolean registerSuperHandler) {
-        for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner.getClass(), method -> !Modifier.isStatic(method.getModifiers()), registerSuperHandler)) {
-            if (event == null) this.registerMethod(handler.getOwner(), owner, handler.getAnnotation(), handler.getMethod(), e -> true);
-            else this.registerMethod(handler.getOwner(), owner, handler.getAnnotation(), handler.getMethod(), e -> e.equals(event));
+    private void register(@Nullable final Class<?> event, final Class<?> owner, @Nullable final Object instance, final boolean isStatic, final boolean registerSuperHandler) {
+        for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner, method -> Modifier.isStatic(method.getModifiers()) == isStatic, registerSuperHandler)) {
+            if (event == null) this.registerMethod(handler.getOwner(), instance, handler.getAnnotation(), handler.getMethod(), e -> true);
+            else this.registerMethod(handler.getOwner(), instance, handler.getAnnotation(), handler.getMethod(), e -> e.equals(event));
         }
-        for (EventUtils.FieldHandler handler : EventUtils.getFields(owner.getClass(), field -> !Modifier.isStatic(field.getModifiers()), registerSuperHandler)) {
-            if (event == null) this.registerField(handler.getOwner(), owner, handler.getAnnotation(), handler.getField(), e -> true);
-            else this.registerField(handler.getOwner(), owner, handler.getAnnotation(), handler.getField(), e -> e.equals(event));
+        for (EventUtils.FieldHandler handler : EventUtils.getFields(owner, field -> Modifier.isStatic(field.getModifiers()) == isStatic, registerSuperHandler)) {
+            if (event == null) this.registerField(handler.getOwner(), instance, handler.getAnnotation(), handler.getField(), e -> true);
+            else this.registerField(handler.getOwner(), instance, handler.getAnnotation(), handler.getField(), e -> e.equals(event));
         }
     }
 
