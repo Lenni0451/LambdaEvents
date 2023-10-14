@@ -42,6 +42,16 @@ public class SuperRegisterTest {
 
     @ParameterizedTest
     @MethodSource(DATA_SOURCE)
+    void withRegisterSuper(final LambdaManager manager) {
+        manager.registerSuper(new ThisClass());
+        manager.call("Test");
+
+        assertTrue(this.calledThis);
+        assertTrue(this.calledSuper);
+    }
+
+    @ParameterizedTest
+    @MethodSource(DATA_SOURCE)
     void withSuperUnregister(final LambdaManager manager) {
         ThisClass instance = new ThisClass();
 
