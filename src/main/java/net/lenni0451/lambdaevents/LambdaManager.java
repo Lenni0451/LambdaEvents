@@ -145,12 +145,7 @@ public class LambdaManager {
     public <T> T callParents(final T event) {
         for (Class<?> clazz : this.parentsCache.computeIfAbsent(event.getClass(), clazz -> {
             Set<Class<?>> parents = new LinkedHashSet<>();
-            Class<?> current = clazz;
-            while (current != null) {
-                parents.add(current);
-                Collections.addAll(parents, current.getInterfaces());
-                current = current.getSuperclass();
-            }
+            EventUtils.getSuperClasses(parents, clazz);
             return parents.toArray(new Class[0]);
         })) {
             AHandler[] handlers = this.handlerArrays.get(clazz);

@@ -12,10 +12,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -34,16 +31,18 @@ public class EventUtils {
     @Nonnull
     public static List<MethodHandler> getMethods(final Class<?> owner, final Predicate<Method> accept, final boolean registerSuperHandler) {
         List<MethodHandler> handler = new ArrayList<>();
-        Class<?> current = owner;
-        do {
+        Set<Class<?>> classes = new LinkedHashSet<>();
+        if (registerSuperHandler) getSuperClasses(classes, owner);
+        else classes.add(owner);
+
+        for (Class<?> current : classes) {
             for (Method method : current.getDeclaredMethods()) {
                 EventHandler annotation = method.getDeclaredAnnotation(EventHandler.class);
                 if (annotation == null) continue;
                 if (!accept.test(method)) continue;
-
                 handler.add(new MethodHandler(current, annotation, method));
             }
-        } while ((current = current.getSuperclass()) != null && registerSuperHandler);
+        }
         return handler;
     }
 
@@ -59,8 +58,11 @@ public class EventUtils {
     @Nonnull
     public static List<FieldHandler> getFields(final Class<?> owner, final Predicate<Field> accept, final boolean registerSuperHandler) {
         List<FieldHandler> handler = new ArrayList<>();
-        Class<?> current = owner;
-        do {
+        Set<Class<?>> classes = new LinkedHashSet<>();
+        if (registerSuperHandler) getSuperClasses(classes, owner);
+        else classes.add(owner);
+
+        for (Class<?> current : classes) {
             for (Field field : current.getDeclaredFields()) {
                 EventHandler annotation = field.getDeclaredAnnotation(EventHandler.class);
                 if (annotation == null) continue;
@@ -68,7 +70,7 @@ public class EventUtils {
 
                 handler.add(new FieldHandler(current, annotation, field));
             }
-        } while ((current = current.getSuperclass()) != null && registerSuperHandler);
+        }
         return handler;
     }
 
@@ -214,6 +216,23 @@ public class EventUtils {
             if (i != type.parameterCount() - 1) out.append(", ");
         }
         return out.append(")").append(type.returnType().getSimpleName()).toString();
+    }
+
+    /**
+     * Get all super classes and interfaces of the given class.<br>
+     * This uses recursion to simplify the code.
+     *
+     * @param classes The set to add the classes to
+     * @param clazz   The class to get the super classes from
+     */
+    public static void getSuperClasses(final Set<Class<?>> classes, final Class<?> clazz) {
+        classes.add(clazz);
+        Class<?> superClass = clazz.getSuperclass();
+        Class<?>[] interfaces = clazz.getInterfaces();
+        if (superClass != null && !classes.contains(superClass)) getSuperClasses(classes, superClass);
+        for (Class<?> anInterface : interfaces) {
+            if (!classes.contains(anInterface)) getSuperClasses(classes, anInterface);
+        }
     }
 
 
