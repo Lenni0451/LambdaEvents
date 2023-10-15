@@ -43,7 +43,7 @@ public class LambdaMetaFactoryGenerator implements IGenerator {
     @Override
     @Nonnull
     public AHandler generate(Class<?> owner, @Nullable Object instance, EventHandler annotation, Method method, Class<?> arg) {
-        Consumer<Object> consumer = this.generate(owner, instance, method, Consumer.class, "accept", MethodType.methodType(void.class, Object.class));
+        Consumer<?> consumer = this.generate(owner, instance, method, Consumer.class, "accept", MethodType.methodType(void.class, Object.class));
         return new ConsumerHandler(owner, instance, annotation, consumer);
     }
 
@@ -55,32 +55,27 @@ public class LambdaMetaFactoryGenerator implements IGenerator {
     }
 
     @SneakyThrows
-    private MethodHandle getHandle(final MethodHandles.Lookup lookup, final Method method) {
-        return lookup.unreflect(method);
-    }
-
-    @SneakyThrows
     private <T> T generate(final Class<?> owner, @Nullable final Object instance, final Method method, final Class<T> interfaceClass, final String interfaceMethod, final MethodType interfaceType) {
-        MethodHandles.Lookup lookup = LookupUtils.resolveLookup(this.lookup, owner);
-        MethodHandle handle = this.getHandle(lookup, method);
+        MethodHandles.Lookup lookup = LookupUtils.resolveLookup(this.lookup, owner); //Resolve the lookup that it can access the method
+        MethodHandle handle = lookup.unreflect(method); //Unreflect the method
         if (instance == null) {
             return (T) LambdaMetafactory.metafactory(
-                    lookup,
-                    interfaceMethod,
-                    MethodType.methodType(interfaceClass),
-                    interfaceType,
-                    handle,
-                    handle.type()
-            ).getTarget().invoke();
+                    lookup, //The lookup to use
+                    interfaceMethod, //The method name of the called interface
+                    MethodType.methodType(interfaceClass), //The return type of the interface builder
+                    interfaceType, //The return type and parameter types of the interface method
+                    handle, //The method handle to invoke
+                    handle.type() //The type of the method handle
+            ).getTarget().invoke(); //Get and invoke the interface builder
         } else {
             return (T) LambdaMetafactory.metafactory(
-                    lookup,
-                    interfaceMethod,
-                    MethodType.methodType(interfaceClass, instance.getClass()),
-                    interfaceType,
-                    handle,
-                    handle.type().dropParameterTypes(0, 1)
-            ).getTarget().invoke(instance);
+                    lookup, //The lookup to use
+                    interfaceMethod, //The method name of the called interface
+                    MethodType.methodType(interfaceClass, instance.getClass()), //The return type and parameter type of the interface builder
+                    interfaceType, //The return type and parameter types of the interface method
+                    handle, //The method handle to invoke
+                    handle.type().dropParameterTypes(0, 1) //The type of the method handle without the instance parameter
+            ).getTarget().invoke(instance); //Get and invoke the interface builder
         }
     }
 

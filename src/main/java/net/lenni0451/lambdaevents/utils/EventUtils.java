@@ -32,14 +32,16 @@ public class EventUtils {
     public static List<MethodHandler> getMethods(final Class<?> owner, final Predicate<Method> accept, final boolean registerSuperHandler) {
         List<MethodHandler> handler = new ArrayList<>();
         Set<Class<?>> classes = new LinkedHashSet<>();
+        //Only get all super classes if registerSuperHandler is true
         if (registerSuperHandler) getSuperClasses(classes, owner);
         else classes.add(owner);
 
         for (Class<?> current : classes) {
             for (Method method : current.getDeclaredMethods()) {
                 EventHandler annotation = method.getDeclaredAnnotation(EventHandler.class);
-                if (annotation == null) continue;
-                if (!accept.test(method)) continue;
+                if (annotation == null) continue; //Doesn't have the annotation
+                if (!accept.test(method)) continue; //Doesn't match the predicate
+
                 handler.add(new MethodHandler(current, annotation, method));
             }
         }
@@ -59,14 +61,15 @@ public class EventUtils {
     public static List<FieldHandler> getFields(final Class<?> owner, final Predicate<Field> accept, final boolean registerSuperHandler) {
         List<FieldHandler> handler = new ArrayList<>();
         Set<Class<?>> classes = new LinkedHashSet<>();
+        //Only get all super classes if registerSuperHandler is true
         if (registerSuperHandler) getSuperClasses(classes, owner);
         else classes.add(owner);
 
         for (Class<?> current : classes) {
             for (Field field : current.getDeclaredFields()) {
                 EventHandler annotation = field.getDeclaredAnnotation(EventHandler.class);
-                if (annotation == null) continue;
-                if (!accept.test(field)) continue;
+                if (annotation == null) continue; //Doesn't have the annotation
+                if (!accept.test(field)) continue; //Doesn't match the predicate
 
                 handler.add(new FieldHandler(current, annotation, field));
             }
@@ -83,14 +86,25 @@ public class EventUtils {
      * @throws IllegalStateException If the method is not valid
      */
     public static void verify(final Class<?> owner, final EventHandler annotation, final Method method) {
-        if (Modifier.isAbstract(method.getModifiers())) throw new IllegalStateException("Method '" + method.getName() + "' in class '" + owner.getName() + "' is abstract");
-        if (Modifier.isNative(method.getModifiers())) throw new IllegalStateException("Method '" + method.getName() + "' in class '" + owner.getName() + "' is native");
+        if (Modifier.isAbstract(method.getModifiers())) {
+            //Abstract methods can't be invoked
+            throw new IllegalStateException("Method '" + method.getName() + "' in class '" + owner.getName() + "' is abstract");
+        }
+        if (Modifier.isNative(method.getModifiers())) {
+            //Native methods should not be invoked
+            throw new IllegalStateException("Method '" + method.getName() + "' in class '" + owner.getName() + "' is native");
+        }
         if (annotation.events().length == 0 && method.getParameterCount() != 1) {
-            throw new IllegalStateException("Method '" + method.getName() + "' in class '" + owner.getName() + "' has no virtual events and more than 1 parameter");
+            //No virtual events and not exactly 1 parameter
+            throw new IllegalStateException("Method '" + method.getName() + "' in class '" + owner.getName() + "' has no virtual events and not exactly 1 parameter");
         } else if (annotation.events().length > 0 && method.getParameterCount() != 0) {
+            //Virtual events and more than 0 parameters
             throw new IllegalStateException("Method '" + method.getName() + "' in class '" + owner.getName() + "' has virtual events and more than 0 parameters");
         }
-        if (!method.getReturnType().equals(void.class)) throw new IllegalStateException("Method '" + method.getName() + "' in class '" + owner.getName() + "' has a return type");
+        if (!method.getReturnType().equals(void.class)) {
+            //Methods should not return anything
+            throw new IllegalStateException("Method '" + method.getName() + "' in class '" + owner.getName() + "' has a return type");
+        }
     }
 
     /**
@@ -102,19 +116,27 @@ public class EventUtils {
      */
     public static void verify(final Class<?> owner, final EventHandler annotation, final Field field) {
         if (Runnable.class.isAssignableFrom(field.getType())) {
-            if (annotation.events().length == 0) throw new IllegalStateException("Field '" + field.getName() + "' in class '" + owner.getName() + "' has no virtual events");
+            if (annotation.events().length == 0) {
+                //Runnable fields can only be used if they have virtual events
+                throw new IllegalStateException("Field '" + field.getName() + "' in class '" + owner.getName() + "' has no virtual events");
+            }
         } else if (Consumer.class.isAssignableFrom(field.getType())) {
             if (annotation.events().length == 0) {
+                //Consumer fields without virtual events need to have a generic type
                 if (field.getGenericType() instanceof ParameterizedType) {
+                    //The field has a parameterized type
                     ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
                     if (parameterizedType.getActualTypeArguments().length != 1) {
+                        //The field has more than 1 generic type
                         throw new IllegalStateException("Field '" + field.getName() + "' in class '" + owner.getName() + "' has no virtual events and more than 1 generic type");
                     }
                 } else {
+                    //If the field has no generic type it can't be used
                     throw new IllegalStateException("Field '" + field.getName() + "' in class '" + owner.getName() + "' has no virtual events and no generic type");
                 }
             }
         } else {
+            //The field is not a Runnable or Consumer
             throw new IllegalStateException("Field '" + field.getName() + "' in class '" + owner.getName() + "' is not a Runnable or Consumer");
         }
     }
@@ -130,10 +152,12 @@ public class EventUtils {
     @Nonnull
     public static Class<?>[] getEvents(final EventHandler annotation, final Method method, final Predicate<Class<?>> accept) {
         if (method.getParameterCount() == 1) {
+            //The method has one parameter, so it has to be the event
             Class<?> param = method.getParameterTypes()[0];
             if (!accept.test(param)) return new Class[0];
             return new Class<?>[]{param};
         } else {
+            //The method has no parameters, so we need to get the virtual events
             return Arrays.stream(annotation.events()).filter(accept).toArray(Class[]::new);
         }
     }
@@ -149,9 +173,11 @@ public class EventUtils {
     @Nonnull
     public static Class<?>[] getEvents(final EventHandler annotation, final Field field, final Predicate<Class<?>> accept) {
         List<Class<?>> events = new ArrayList<>();
-        Collections.addAll(events, annotation.events());
+        Collections.addAll(events, annotation.events()); //Add all events from the annotation
         if (Consumer.class.isAssignableFrom(field.getType()) && events.isEmpty()) {
+            //If the field is a consumer and has no virtual events we need to get the generic type
             if (field.getGenericType() instanceof ParameterizedType) {
+                //The field has a parameterized type
                 ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
                 events.add((Class<?>) parameterizedType.getActualTypeArguments()[0]);
             }
@@ -226,11 +252,12 @@ public class EventUtils {
      * @param clazz   The class to get the super classes from
      */
     public static void getSuperClasses(final Set<Class<?>> classes, final Class<?> clazz) {
-        classes.add(clazz);
+        classes.add(clazz); //Add the current class
         Class<?> superClass = clazz.getSuperclass();
         Class<?>[] interfaces = clazz.getInterfaces();
-        if (superClass != null && !classes.contains(superClass)) getSuperClasses(classes, superClass);
+        if (superClass != null && !classes.contains(superClass)) getSuperClasses(classes, superClass); //Check if the super class is not null and not already added
         for (Class<?> anInterface : interfaces) {
+            //Add all interfaces if not already added
             if (!classes.contains(anInterface)) getSuperClasses(classes, anInterface);
         }
     }

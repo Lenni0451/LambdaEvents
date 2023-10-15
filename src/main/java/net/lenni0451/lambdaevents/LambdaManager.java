@@ -2,7 +2,6 @@ package net.lenni0451.lambdaevents;
 
 import net.lenni0451.lambdaevents.handler.ConsumerHandler;
 import net.lenni0451.lambdaevents.handler.RunnableHandler;
-import net.lenni0451.lambdaevents.utils.EventException;
 import net.lenni0451.lambdaevents.utils.EventUtils;
 
 import javax.annotation.Nonnull;
@@ -51,9 +50,7 @@ public class LambdaManager {
     private final Supplier<List<AHandler>> listSupplier;
     private final IGenerator generator;
 
-    private IExceptionHandler exceptionHandler = (handler, event, t) -> {
-        new EventException("Exception occurred in '" + event.getClass().getSimpleName() + "' handler in '" + handler.getOwner().getName() + "'", t).printStackTrace();
-    };
+    private IExceptionHandler exceptionHandler = IExceptionHandler.infoPrint();
     private boolean registerSuperHandler = false;
     private boolean alwaysCallParents = false;
 
@@ -117,17 +114,17 @@ public class LambdaManager {
      */
     @Nonnull
     public <T> T call(final T event) {
-        if (this.alwaysCallParents) return this.callParents(event);
+        if (this.alwaysCallParents) return this.callParents(event); //Redirect to callParents() if alwaysCallParents is true
         AHandler[] handlers = this.handlerArrays.get(event.getClass());
-        if (handlers == null) return event;
+        if (handlers == null) return event; //No handlers registered for this event
 
         for (AHandler handler : handlers) {
             try {
                 handler.call(event);
             } catch (StopCall ignored) {
-                break;
+                break; //Stop calling the following handlers
             } catch (Throwable t) {
-                this.exceptionHandler.handle(handler, event, t);
+                this.exceptionHandler.handle(handler, event, t); //The handler threw an exception, handle it and continue
             }
         }
         return event;
@@ -135,7 +132,7 @@ public class LambdaManager {
 
     /**
      * Call all handlers for the given event and all parent classes of the event (including interfaces).<br>
-     * {@link RuntimeException} -{@literal >} {@link Exception} -{@literal >} {@link Throwable} -{@literal >} {@link Serializable} -{@literal >} {@link Object}
+     * e.g. {@link RuntimeException} {@literal ->} {@link Exception} {@literal ->} {@link Throwable} {@literal ->} {@link Serializable} {@literal ->} {@link Object}
      *
      * @param event The event instance
      * @param <T>   The event type
@@ -144,20 +141,21 @@ public class LambdaManager {
     @Nonnull
     public <T> T callParents(final T event) {
         for (Class<?> clazz : this.parentsCache.computeIfAbsent(event.getClass(), clazz -> {
+            //Calculate all parent classes and interfaces and cache them
             Set<Class<?>> parents = new LinkedHashSet<>();
             EventUtils.getSuperClasses(parents, clazz);
             return parents.toArray(new Class[0]);
         })) {
             AHandler[] handlers = this.handlerArrays.get(clazz);
-            if (handlers == null) continue;
+            if (handlers == null) continue; //No handlers registered for this event class
 
             for (AHandler handler : handlers) {
                 try {
                     handler.call(event);
                 } catch (StopCall ignored) {
-                    break;
+                    break; //Stop calling the following handlers
                 } catch (Throwable t) {
-                    this.exceptionHandler.handle(handler, event, t);
+                    this.exceptionHandler.handle(handler, event, t); //The handler threw an exception, handle it and continue
                 }
             }
         }
@@ -245,6 +243,7 @@ public class LambdaManager {
         if (events.length == 0) throw new IllegalArgumentException("No events specified");
         synchronized (this.handlers) {
             for (Class<?> event : events) {
+                //Add a new RunnableHandler for each event
                 List<AHandler> handlers = this.handlers.computeIfAbsent(event, (key) -> this.listSupplier.get());
                 handlers.add(new RunnableHandler(runnable.getClass(), null, EventUtils.newEventHandler(priority), runnable));
                 this.checkCallChain(event, handlers);
@@ -277,6 +276,7 @@ public class LambdaManager {
         if (events.length == 0) throw new IllegalArgumentException("No events specified");
         synchronized (this.handlers) {
             for (Class<?> event : events) {
+                //Add a new ConsumerHandler for each event
                 List<AHandler> handlers = this.handlers.computeIfAbsent(event, (key) -> this.listSupplier.get());
                 handlers.add(new ConsumerHandler(consumer.getClass(), null, EventUtils.newEventHandler(priority), consumer));
                 this.checkCallChain(event, handlers);
@@ -285,45 +285,56 @@ public class LambdaManager {
     }
 
     private void register(@Nullable final Class<?> event, final Class<?> owner, @Nullable final Object instance, final boolean isStatic, final boolean registerSuperHandler) {
+        Predicate<Class<?>> eventFilter;
+        if (event == null) eventFilter = e -> true; //Register all events
+        else eventFilter = e -> e.equals(event); //Only register the given event
+
         for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner, method -> Modifier.isStatic(method.getModifiers()) == isStatic, registerSuperHandler)) {
-            if (event == null) this.registerMethod(handler.getOwner(), instance, handler.getAnnotation(), handler.getMethod(), e -> true);
-            else this.registerMethod(handler.getOwner(), instance, handler.getAnnotation(), handler.getMethod(), e -> e.equals(event));
+            //Register all methods which handle the given event
+            EventHandler annotation = handler.getAnnotation();
+            Method method = handler.getMethod();
+            EventUtils.verify(owner, annotation, method); //Check if the method is a valid event handler
+            for (Class<?> eventClass : EventUtils.getEvents(annotation, method, eventFilter)) {
+                //Go through all events which the method handles and register them
+                //Here 'virtual' means that the method does not take the event as a parameter
+                this.registerMethod(owner, instance, annotation, method, eventClass, method.getParameterCount() == 0);
+            }
         }
         for (EventUtils.FieldHandler handler : EventUtils.getFields(owner, field -> Modifier.isStatic(field.getModifiers()) == isStatic, registerSuperHandler)) {
-            if (event == null) this.registerField(handler.getOwner(), instance, handler.getAnnotation(), handler.getField(), e -> true);
-            else this.registerField(handler.getOwner(), instance, handler.getAnnotation(), handler.getField(), e -> e.equals(event));
+            //Register all fields which handle the given event
+            EventHandler annotation = handler.getAnnotation();
+            Field field = handler.getField();
+            EventUtils.verify(owner, annotation, field); //Check if the field is a valid event handler
+            for (Class<?> eventClass : EventUtils.getEvents(annotation, field, eventFilter)) {
+                //Go through all events which the field handles and register them
+                this.registerField(owner, instance, annotation, field, eventClass);
+            }
         }
-    }
-
-    private void registerMethod(final Class<?> owner, @Nullable final Object instance, final EventHandler annotation, final Method method, final Predicate<Class<?>> accept) {
-        EventUtils.verify(owner, annotation, method);
-        for (Class<?> event : EventUtils.getEvents(annotation, method, accept)) this.registerMethod(owner, instance, annotation, method, event, method.getParameterCount() == 0);
     }
 
     private void registerMethod(final Class<?> owner, @Nullable final Object instance, final EventHandler annotation, final Method method, final Class<?> event, final boolean virtual) {
         synchronized (this.handlers) {
+            //Generate a new handler and add it to the list
             List<AHandler> handlers = this.handlers.computeIfAbsent(event, (key) -> this.listSupplier.get());
             AHandler handler;
-            if (virtual) handler = this.generator.generateVirtual(owner, instance, annotation, method);
-            else handler = this.generator.generate(owner, instance, annotation, method, event);
+            if (virtual) handler = this.generator.generateVirtual(owner, instance, annotation, method); //Handler without parameter
+            else handler = this.generator.generate(owner, instance, annotation, method, event); //Handler with parameter
             handlers.add(handler);
             this.checkCallChain(event, handlers);
         }
     }
 
-    private void registerField(final Class<?> owner, @Nullable final Object instance, final EventHandler annotation, final Field field, final Predicate<Class<?>> accept) {
-        EventUtils.verify(owner, annotation, field);
-        for (Class<?> event : EventUtils.getEvents(annotation, field, accept)) this.registerField(owner, instance, annotation, field, event);
-    }
-
     private void registerField(final Class<?> owner, @Nullable final Object instance, final EventHandler annotation, final Field field, final Class<?> event) {
         synchronized (this.handlers) {
+            //Get the field value and create a new handler for it
             List<AHandler> handlers = this.handlers.computeIfAbsent(event, (key) -> this.listSupplier.get());
             AHandler handler;
             try {
-                if (Runnable.class.isAssignableFrom(field.getType())) handler = new RunnableHandler(owner, instance, annotation, (Runnable) field.get(instance));
-                else handler = new ConsumerHandler(owner, instance, annotation, (Consumer<?>) field.get(instance));
+                if (Runnable.class.isAssignableFrom(field.getType())) handler = new RunnableHandler(owner, instance, annotation, (Runnable) field.get(instance)); //Runnable handler
+                else handler = new ConsumerHandler(owner, instance, annotation, (Consumer<?>) field.get(instance)); //Consumer handler
+                //The else block only receiving a Consumer is ensured by EventUtils.verify()
             } catch (Throwable t) {
+                //Possible exception when getting the field value
                 throw new RuntimeException("Failed to register field '" + field.getName() + "' in class '" + owner.getName() + "'", t);
             }
             handlers.add(handler);
@@ -342,10 +353,13 @@ public class LambdaManager {
             Map<Class<?>, List<AHandler>> checked = new HashMap<>();
             for (Map.Entry<Class<?>, List<AHandler>> entry : this.handlers.entrySet()) {
                 List<AHandler> handlers = entry.getValue();
-                handlers.removeIf(handler -> handler.isStatic() && handler.getOwner().equals(owner));
+                handlers.removeIf(handler -> handler.isStatic() && handler.getOwner().equals(owner)); //Only remove static handlers which belong to the given class
                 checked.put(entry.getKey(), handlers);
             }
-            for (Map.Entry<Class<?>, List<AHandler>> entry : checked.entrySet()) this.checkCallChain(entry.getKey(), entry.getValue());
+            for (Map.Entry<Class<?>, List<AHandler>> entry : checked.entrySet()) {
+                //Check and redo the call chain for all events
+                this.checkCallChain(entry.getKey(), entry.getValue());
+            }
         }
     }
 
@@ -359,7 +373,7 @@ public class LambdaManager {
         synchronized (this.handlers) {
             List<AHandler> handlers = this.handlers.get(event);
             if (handlers == null) return;
-            handlers.removeIf(handler -> handler.isStatic() && handler.getOwner().equals(owner));
+            handlers.removeIf(handler -> handler.isStatic() && handler.getOwner().equals(owner)); //Only remove static handlers which belong to the given class
             this.checkCallChain(event, handlers);
         }
     }
@@ -369,16 +383,18 @@ public class LambdaManager {
      *
      * @param owner The object from which the non-static event handlers should be unregistered
      */
-    @SuppressWarnings("DataFlowIssue")
     public void unregister(final Object owner) {
         synchronized (this.handlers) {
             Map<Class<?>, List<AHandler>> checked = new HashMap<>();
             for (Map.Entry<Class<?>, List<AHandler>> entry : this.handlers.entrySet()) {
                 List<AHandler> handlers = entry.getValue();
-                handlers.removeIf(handler -> !handler.isStatic() && handler.getInstance().equals(owner));
+                handlers.removeIf(handler -> !handler.isStatic() && owner.equals(handler.getInstance())); //Only remove non-static handlers which belong to the given object
                 checked.put(entry.getKey(), handlers);
             }
-            for (Map.Entry<Class<?>, List<AHandler>> entry : checked.entrySet()) this.checkCallChain(entry.getKey(), entry.getValue());
+            for (Map.Entry<Class<?>, List<AHandler>> entry : checked.entrySet()) {
+                //Check and redo the call chain for all events
+                this.checkCallChain(entry.getKey(), entry.getValue());
+            }
         }
     }
 
@@ -388,12 +404,11 @@ public class LambdaManager {
      * @param event The event class
      * @param owner The object from which the non-static event handlers should be unregistered
      */
-    @SuppressWarnings("DataFlowIssue")
     public void unregister(final Class<?> event, final Object owner) {
         synchronized (this.handlers) {
             List<AHandler> handlers = this.handlers.get(event);
             if (handlers == null) return;
-            handlers.removeIf(handler -> !handler.isStatic() && handler.getInstance().equals(owner));
+            handlers.removeIf(handler -> !handler.isStatic() && owner.equals(handler.getInstance())); //Only remove non-static handlers which belong to the given object
             this.checkCallChain(event, handlers);
         }
     }
@@ -408,10 +423,14 @@ public class LambdaManager {
             Map<Class<?>, List<AHandler>> checked = new HashMap<>();
             for (Map.Entry<Class<?>, List<AHandler>> entry : this.handlers.entrySet()) {
                 List<AHandler> handlers = entry.getValue();
+                //Only remove RunnableHandlers which call the given Runnable
                 handlers.removeIf(handler -> handler instanceof RunnableHandler && ((RunnableHandler) handler).getRunnable().equals(runnable));
                 checked.put(entry.getKey(), handlers);
             }
-            for (Map.Entry<Class<?>, List<AHandler>> entry : checked.entrySet()) this.checkCallChain(entry.getKey(), entry.getValue());
+            for (Map.Entry<Class<?>, List<AHandler>> entry : checked.entrySet()) {
+                //Check and redo the call chain for all events
+                this.checkCallChain(entry.getKey(), entry.getValue());
+            }
         }
     }
 
@@ -423,13 +442,14 @@ public class LambdaManager {
      */
     public void unregister(final Runnable runnable, final Class<?>... events) {
         if (events.length == 0) {
-            this.unregister(runnable);
+            this.unregister(runnable); //Redirect to the other method if no events are specified
             return;
         }
         synchronized (this.handlers) {
             for (Class<?> event : events) {
                 List<AHandler> handlers = this.handlers.get(event);
                 if (handlers == null) continue;
+                //Only remove RunnableHandlers which call the given Runnable
                 handlers.removeIf(handler -> handler instanceof RunnableHandler && ((RunnableHandler) handler).getRunnable().equals(runnable));
                 this.checkCallChain(event, handlers);
             }
@@ -446,10 +466,14 @@ public class LambdaManager {
             Map<Class<?>, List<AHandler>> checked = new HashMap<>();
             for (Map.Entry<Class<?>, List<AHandler>> entry : this.handlers.entrySet()) {
                 List<AHandler> handlers = entry.getValue();
+                //Only remove ConsumerHandlers which call the given Consumer
                 handlers.removeIf(handler -> handler instanceof ConsumerHandler && ((ConsumerHandler) handler).getConsumer().equals(consumer));
                 checked.put(entry.getKey(), handlers);
             }
-            for (Map.Entry<Class<?>, List<AHandler>> entry : checked.entrySet()) this.checkCallChain(entry.getKey(), entry.getValue());
+            for (Map.Entry<Class<?>, List<AHandler>> entry : checked.entrySet()) {
+                //Check and redo the call chain for all events
+                this.checkCallChain(entry.getKey(), entry.getValue());
+            }
         }
     }
 
@@ -461,13 +485,14 @@ public class LambdaManager {
      */
     public void unregister(final Consumer<?> consumer, final Class<?>... events) {
         if (events.length == 0) {
-            this.unregister(consumer);
+            this.unregister(consumer); //Redirect to the other method if no events are specified
             return;
         }
         synchronized (this.handlers) {
             for (Class<?> event : events) {
                 List<AHandler> handlers = this.handlers.get(event);
                 if (handlers == null) continue;
+                //Only remove ConsumerHandlers which call the given Consumer
                 handlers.removeIf(handler -> handler instanceof ConsumerHandler && ((ConsumerHandler) handler).getConsumer().equals(consumer));
                 this.checkCallChain(event, handlers);
             }
@@ -477,21 +502,29 @@ public class LambdaManager {
 
     private void checkCallChain(final Class<?> event, final List<AHandler> handlers) {
         if (handlers.isEmpty()) {
+            //If the handlers list is empty remove it from the handler maps
             this.handlers.remove(event);
             this.handlerArrays.remove(event);
             return;
         } else if (handlers.size() > 1) {
+            //Resort the handlers if there are more than one
             handlers.sort(Comparator.comparingInt((AHandler o) -> o.getAnnotation().priority()).reversed());
         }
+        //Update the handler array
         this.handlerArrays.put(event, handlers.toArray(new AHandler[0]));
     }
 
+    /**
+     * Generate a debug output of all registered events and handlers.
+     *
+     * @return The debug output
+     */
     @Override
     public String toString() {
-        StringBuilder out = new StringBuilder("LambdaManager{\n");
+        StringBuilder out = new StringBuilder("LambdaManager{\n"); //Header of the debug output
         for (Map.Entry<Class<?>, AHandler[]> entry : this.handlerArrays.entrySet()) {
-            out.append("\t").append(entry.getKey().getName()).append("[\n");
-            for (AHandler handler : entry.getValue()) out.append("\t\t").append(handler.toString()).append("\n");
+            out.append("\t").append(entry.getKey().getName()).append("[\n"); //Name of the event class
+            for (AHandler handler : entry.getValue()) out.append("\t\t").append(handler.toString()).append("\n"); //The handler toString() method
             out.append("\t]\n");
         }
         return out.append("}").toString();

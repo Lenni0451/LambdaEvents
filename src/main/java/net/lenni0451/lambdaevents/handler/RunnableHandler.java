@@ -42,7 +42,7 @@ public class RunnableHandler extends AHandler {
 
     @Override
     public String toString() {
-        return "runnable: " + this.getOwner().getName() + " -> " + this.runnable.getClass().getName();
+        return "runnable: " + this.owner.getName() + " -> " + this.runnable.getClass().getName();
     }
 
 }

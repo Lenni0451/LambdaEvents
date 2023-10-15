@@ -53,8 +53,8 @@ public class MethodHandleGenerator implements IGenerator {
 
     @SneakyThrows
     private MethodHandle getHandle(final Class<?> owner, @Nullable final Object instance, final Method method) {
-        MethodHandle handle = LookupUtils.resolveLookup(this.lookup, owner).unreflect(method);
-        if (instance != null) handle = handle.bindTo(instance);
+        MethodHandle handle = LookupUtils.resolveLookup(this.lookup, owner).unreflect(method); //Resolve the lookup that it can access the method and unreflect it
+        if (instance != null) handle = handle.bindTo(instance); //If the handler is not static bind the instance to the method handle
         return handle;
     }
 

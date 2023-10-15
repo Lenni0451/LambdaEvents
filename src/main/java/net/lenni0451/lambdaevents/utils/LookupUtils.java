@@ -8,6 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -17,7 +18,7 @@ import java.util.WeakHashMap;
 @ParametersAreNonnullByDefault
 public class LookupUtils {
 
-    private static final Map<ClassLoader, LookupGetterLoader> loaders = new WeakHashMap<>();
+    private static final Map<ClassLoader, LookupGetterLoader> loaders = Collections.synchronizedMap(new WeakHashMap<>());
 
     /**
      * Get a {@link MethodHandles.Lookup} in the given {@link ClassLoader}.<br>
@@ -29,23 +30,23 @@ public class LookupUtils {
     @Nonnull
     @SneakyThrows
     public static MethodHandles.Lookup getIn(final ClassLoader classLoader) {
-        synchronized (loaders) {
-            LookupGetterLoader loader = loaders.computeIfAbsent(classLoader, LookupGetterLoader::new);
-            Class<?> lookupGetter;
-            if (!loader.isDefined(LookupGetter.class.getName())) {
-                try (InputStream is = LookupGetter.class.getClassLoader().getResourceAsStream(LookupGetter.class.getName().replace('.', '/') + ".class")) {
-                    if (is == null) throw new ClassNotFoundException(LookupGetter.class.getName());
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    byte[] buf = new byte[1024];
-                    int len;
-                    while ((len = is.read(buf)) != -1) baos.write(buf, 0, len);
-                    lookupGetter = loader.define(LookupGetter.class.getName(), baos.toByteArray());
-                }
-            } else {
-                lookupGetter = loader.loadClass(LookupGetter.class.getName());
+        LookupGetterLoader loader = loaders.computeIfAbsent(classLoader, LookupGetterLoader::new);
+        Class<?> lookupGetter;
+        if (!loader.isDefined(LookupGetter.class.getName())) {
+            //If the class is not defined we need to get its bytes and define it
+            try (InputStream is = LookupGetter.class.getClassLoader().getResourceAsStream(LookupGetter.class.getName().replace('.', '/') + ".class")) {
+                if (is == null) throw new ClassNotFoundException(LookupGetter.class.getName()); //This should hopefully never happen
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                byte[] buf = new byte[1024];
+                int len;
+                while ((len = is.read(buf)) != -1) baos.write(buf, 0, len);
+                lookupGetter = loader.define(LookupGetter.class.getName(), baos.toByteArray()); //Define the class
             }
-            return (MethodHandles.Lookup) lookupGetter.getDeclaredMethod("get").invoke(null);
+        } else {
+            //If the class is already defined we can just load it
+            lookupGetter = loader.loadClass(LookupGetter.class.getName());
         }
+        return (MethodHandles.Lookup) lookupGetter.getDeclaredMethod("get").invoke(null); //Invoke the get() method and return the lookup
     }
 
     /**
@@ -59,13 +60,13 @@ public class LookupUtils {
     @Nonnull
     public static MethodHandles.Lookup resolveLookup(MethodHandles.Lookup lookup, final Class<?> accessed) {
         if (canAccess(lookup, accessed)) return lookup;
-        lookup = lookup.in(accessed);
+        lookup = lookup.in(accessed); //Try to get a lookup in the accessed class
         if (canAccess(lookup, accessed)) return lookup;
-        lookup = getIn(accessed.getClassLoader());
+        lookup = getIn(accessed.getClassLoader()); //Try to get a lookup in the accessed class's class loader
         if (canAccess(lookup, accessed)) return lookup;
-        lookup = lookup.in(accessed);
+        lookup = lookup.in(accessed); //Again try to get a lookup in the accessed class
         if (canAccess(lookup, accessed)) return lookup;
-        throw new IllegalStateException("Could not resolve lookup for " + accessed.getName());
+        throw new IllegalStateException("Could not resolve lookup for " + accessed.getName()); //If it still doesn't work give up
     }
 
     /**
@@ -87,17 +88,19 @@ public class LookupUtils {
      * @return If the wanted class is accessible
      */
     public static boolean canAccess(Class<?> wanted, final Class<?> clazz) {
-        if (wanted == clazz) return true;
-        while (wanted.isArray()) wanted = wanted.getComponentType();
-        if (wanted.isPrimitive()) return true;
-        if (wanted == Object.class) return true;
+        if (wanted == clazz) return true; //Same class
+        while (wanted.isArray()) wanted = wanted.getComponentType(); //Get the component type of the array (including multidimensional arrays)
+        if (wanted.isPrimitive()) return true; //Primitive classes are always accessible
+        if (wanted == Object.class) return true; //Object is always accessible
 
         ClassLoader wantedLoader = wanted.getClassLoader();
         ClassLoader clazzLoader = clazz.getClassLoader();
-        if (wantedLoader == clazzLoader) return true;
-        if (wantedLoader != null && clazzLoader == null) return false;
-        if (wantedLoader == null && wanted.getName().startsWith("java.")) return true;
+        if (wantedLoader == clazzLoader) return true; //Same class loader so should be accessible
+        if (wantedLoader != null && clazzLoader == null) return false; //The clazz is a bootstrap class, so it can't access other class loaders
+        if (wantedLoader == null && wanted.getName().startsWith("java.")) return true; //The wanted class is in the java. package and can be accessed by everything
         try {
+            //Try to load the wanted class in the clazz class loader and check if it is the same class
+            //If it is not the same class the clazz can only access its own version of the wanted class
             return Class.forName(wanted.getName(), false, clazzLoader) == wanted;
         } catch (Throwable t) {
             return false;

@@ -195,7 +195,7 @@ The tests were run using Java 17 and may vary on other Java versions.
 
 | Benchmark                           | Mode | Cnt | Score       | Error      | Units |
 |-------------------------------------|------|-----|-------------|------------|-------|
-| CallBenchmark.callASM               | avgt | 4   | 1178682,007 | 22908,614  | ns/op |
-| CallBenchmark.callLambdaMetaFactory | avgt | 4   | 1587287,234 | 307573,307 | ns/op |
-| CallBenchmark.callMethodHandles     | avgt | 4   | 1829005,191 | 77826,768  | ns/op |
-| CallBenchmark.callReflection        | avgt | 4   | 1476969,525 | 59086,732  | ns/op |
+| CallBenchmark.callASM               | avgt | 4   | 1253339,286 | 81976,516  | ns/op |
+| CallBenchmark.callLambdaMetaFactory | avgt | 4   | 1270657,312 | 133794,400 | ns/op |
+| CallBenchmark.callMethodHandles     | avgt | 4   | 1893870,724 | 569223,318 | ns/op |
+| CallBenchmark.callReflection        | avgt | 4   | 1466385,654 | 256169,146 | ns/op |

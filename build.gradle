@@ -55,7 +55,7 @@ test {
 }
 
 jmh {
-    jvm = 'C:/Program Files/Java/jdk-17.0.5/bin/java.exe'
+    jvm = "C:/Program Files/Java/jdk-17/bin/java.exe"
 }
 
 publishing {

@@ -20,14 +20,14 @@ public class ReflectionGenerator implements IGenerator {
     @Override
     @Nonnull
     public AHandler generate(Class<?> owner, @Nullable Object instance, EventHandler annotation, Method method, Class<?> arg) {
-        method.setAccessible(true);
+        method.setAccessible(true); //Make sure the method is accessible
         return new ReflectionHandler(owner, instance, annotation, method);
     }
 
     @Override
     @Nonnull
     public AHandler generateVirtual(Class<?> owner, @Nullable Object instance, EventHandler annotation, Method method) {
-        method.setAccessible(true);
+        method.setAccessible(true); //Make sure the method is accessible
         return new VirtualReflectionHandler(owner, instance, annotation, method);
     }
 

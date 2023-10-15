@@ -23,7 +23,6 @@ public class ConsumerHandler extends AHandler {
      * @param annotation The {@link EventHandler} annotation of the handler method
      * @param consumer   The handler consumer
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public ConsumerHandler(final Class<?> owner, @Nullable final Object instance, final EventHandler annotation, final Consumer consumer) {
         super(owner, instance, annotation);
         this.consumer = consumer;
@@ -44,7 +43,7 @@ public class ConsumerHandler extends AHandler {
 
     @Override
     public String toString() {
-        return "consumer: " + this.getOwner().getName() + " -> " + this.consumer.getClass().getName();
+        return "consumer: " + this.owner.getName() + " -> " + this.consumer.getClass().getName();
     }
 
 }

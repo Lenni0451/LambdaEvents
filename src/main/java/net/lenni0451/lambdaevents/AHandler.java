@@ -11,11 +11,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public abstract class AHandler {
 
     @Nonnull
-    private final Class<?> owner;
+    protected final Class<?> owner;
     @Nullable
-    private final Object instance;
+    protected final Object instance;
     @Nonnull
-    private final EventHandler annotation;
+    protected final EventHandler annotation;
 
     /**
      * @param owner      The owner of the handler method

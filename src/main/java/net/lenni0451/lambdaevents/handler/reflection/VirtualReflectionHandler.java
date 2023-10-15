@@ -32,12 +32,12 @@ public class VirtualReflectionHandler extends AHandler {
     @Override
     @SneakyThrows
     public void call(Object event) {
-        this.method.invoke(this.getInstance());
+        this.method.invoke(this.instance);
     }
 
     @Override
     public String toString() {
-        return "virtualReflection: " + this.getOwner().getName() + " -> " + EventUtils.toString(this.method);
+        return "virtualReflection: " + this.owner.getName() + " -> " + EventUtils.toString(this.method);
     }
 
 }

@@ -35,7 +35,7 @@ public class ASMGenerator implements IGenerator {
     }
 
     private AHandler define(Class<?> owner, @Nullable Object instance, EventHandler annotation, Method method, @Nullable Class<?> arg) {
-        String handlerName = slash(owner.getPackage().getName()) + "/LambdaEvents$ASMHandler";
+        String handlerName = slash(owner.getPackage().getName()) + "/LambdaEvents$ASMHandler"; //The name of the handler class. Java appends a random number to make it unique.
         ASMWrapper w = ASMWrapper.create(opcode("ACC_PUBLIC"), handlerName, null, slash(AHandler.class), null);
         this.makeConstructor(handlerName, w, instance);
         this.makeCaller(handlerName, w, owner, instance, method, arg);
@@ -45,21 +45,24 @@ public class ASMGenerator implements IGenerator {
     }
 
     private void makeConstructor(final String handlerName, final ASMWrapper w, @Nullable final Object instance) {
-        String desc = desc(new Class[]{Class.class, Object.class, EventHandler.class}, void.class);
+        String desc = desc(new Class[]{Class.class, Object.class, EventHandler.class}, void.class); //Descriptor of the constructor (Class, Object, EventHandler)
         boolean isStatic = instance == null;
-        if (!isStatic) w.visitField(opcode("ACC_PRIVATE"), "instance", desc(instance.getClass()), null, null);
+        if (!isStatic) {
+            //Add the instance field if required
+            w.visitField(opcode("ACC_PRIVATE"), "instance", desc(instance.getClass()), null, null);
+        }
 
         ASMWrapper.MethodVisitorAccess mv = w.visitMethod(opcode("ACC_PUBLIC"), "<init>", desc, null, null);
-        mv.visitVarInsn(opcode("ALOAD"), 0);
-        mv.visitVarInsn(opcode("ALOAD"), 1);
-        mv.visitVarInsn(opcode("ALOAD"), 2);
-        mv.visitVarInsn(opcode("ALOAD"), 3);
-        mv.visitMethodInsn(opcode("INVOKESPECIAL"), slash(AHandler.class), "<init>", desc, false);
+        mv.visitVarInsn(opcode("ALOAD"), 0); //this
+        mv.visitVarInsn(opcode("ALOAD"), 1); //Class (owner)
+        mv.visitVarInsn(opcode("ALOAD"), 2); //Object (instance)
+        mv.visitVarInsn(opcode("ALOAD"), 3); //EventHandler (annotation)
+        mv.visitMethodInsn(opcode("INVOKESPECIAL"), slash(AHandler.class), "<init>", desc, false); //Call the super constructor (AHandler)
         if (!isStatic) {
-            mv.visitVarInsn(opcode("ALOAD"), 0);
-            mv.visitVarInsn(opcode("ALOAD"), 2);
-            mv.visitTypeInsn(opcode("CHECKCAST"), slash(instance.getClass()));
-            mv.visitFieldInsn(opcode("PUTFIELD"), handlerName, "instance", desc(instance.getClass()));
+            mv.visitVarInsn(opcode("ALOAD"), 0); //this
+            mv.visitVarInsn(opcode("ALOAD"), 2); //Object (instance)
+            mv.visitTypeInsn(opcode("CHECKCAST"), slash(instance.getClass())); //Cast the instance to the correct type
+            mv.visitFieldInsn(opcode("PUTFIELD"), handlerName, "instance", desc(instance.getClass())); //Set the instance field
         }
         mv.visitInsn(opcode("RETURN"));
         if (isStatic) mv.visitMaxs(4, 4);
@@ -73,15 +76,17 @@ public class ASMGenerator implements IGenerator {
 
         ASMWrapper.MethodVisitorAccess mv = w.visitMethod(opcode("ACC_PUBLIC"), "call", desc(new Class[]{Object.class}, void.class), null, null);
         if (!isStatic) {
-            mv.visitVarInsn(opcode("ALOAD"), 0);
-            mv.visitFieldInsn(opcode("GETFIELD"), handlerName, "instance", desc(instance.getClass()));
+            //The handler is not static, so we need to load the instance
+            mv.visitVarInsn(opcode("ALOAD"), 0); //this
+            mv.visitFieldInsn(opcode("GETFIELD"), handlerName, "instance", desc(instance.getClass())); //Get the instance field
         }
         if (arg != null) {
-            mv.visitVarInsn(opcode("ALOAD"), 1);
-            mv.visitTypeInsn(opcode("CHECKCAST"), slash(arg));
+            //The handler takes the event as an argument
+            mv.visitVarInsn(opcode("ALOAD"), 1); //Object (arg)
+            mv.visitTypeInsn(opcode("CHECKCAST"), slash(arg)); //Cast the arg to the correct type
         }
-        if (isStatic) mv.visitMethodInsn(opcode("INVOKESTATIC"), slash(owner), method.getName(), desc(method), isInterface);
-        else mv.visitMethodInsn(opcode(isInterface ? "INVOKEINTERFACE" : "INVOKEVIRTUAL"), slash(owner), method.getName(), desc(method), isInterface);
+        if (isStatic) mv.visitMethodInsn(opcode("INVOKESTATIC"), slash(owner), method.getName(), desc(method), isInterface); //Call the static method
+        else mv.visitMethodInsn(opcode(isInterface ? "INVOKEINTERFACE" : "INVOKEVIRTUAL"), slash(owner), method.getName(), desc(method), isInterface); //Call the method
         mv.visitInsn(opcode("RETURN"));
         mv.visitMaxs(3, 3);
         mv.visitEnd();

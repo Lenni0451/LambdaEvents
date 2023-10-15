@@ -7,7 +7,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.function.Consumer;
 
 import static net.lenni0451.lambdaevents.TestManager.DATA_SOURCE;
-import static net.lenni0451.lambdaevents.TestManager.throwingExceptionHandler;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class PriorityTest {
@@ -31,7 +30,7 @@ public class PriorityTest {
     @MethodSource(DATA_SOURCE)
     void registered(final LambdaManager manager) {
         assertDoesNotThrow(() -> manager.register(this));
-        manager.setExceptionHandler(throwingExceptionHandler());
+        manager.setExceptionHandler(IExceptionHandler.throwing());
         manager.call("Test");
 
         assertTrue(this.calledVirtualRunnable);

@@ -32,12 +32,12 @@ public class ReflectionHandler extends AHandler {
     @Override
     @SneakyThrows
     public void call(Object event) {
-        this.method.invoke(this.getInstance(), event);
+        this.method.invoke(this.instance, event);
     }
 
     @Override
     public String toString() {
-        return "reflection: " + this.getOwner().getName() + " -> " + EventUtils.toString(this.method);
+        return "reflection: " + this.owner.getName() + " -> " + EventUtils.toString(this.method);
     }
 
 }
