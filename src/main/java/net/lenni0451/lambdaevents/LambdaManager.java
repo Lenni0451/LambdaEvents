@@ -293,21 +293,21 @@ public class LambdaManager {
             //Register all methods which handle the given event
             EventHandler annotation = handler.getAnnotation();
             Method method = handler.getMethod();
-            EventUtils.verify(owner, annotation, method); //Check if the method is a valid event handler
+            EventUtils.verify(handler.getOwner(), annotation, method); //Check if the method is a valid event handler
             for (Class<?> eventClass : EventUtils.getEvents(annotation, method, eventFilter)) {
                 //Go through all events which the method handles and register them
                 //Here 'virtual' means that the method does not take the event as a parameter
-                this.registerMethod(owner, instance, annotation, method, eventClass, method.getParameterCount() == 0);
+                this.registerMethod(handler.getOwner(), instance, annotation, method, eventClass, method.getParameterCount() == 0);
             }
         }
         for (EventUtils.FieldHandler handler : EventUtils.getFields(owner, field -> Modifier.isStatic(field.getModifiers()) == isStatic, registerSuperHandler)) {
             //Register all fields which handle the given event
             EventHandler annotation = handler.getAnnotation();
             Field field = handler.getField();
-            EventUtils.verify(owner, annotation, field); //Check if the field is a valid event handler
+            EventUtils.verify(handler.getOwner(), annotation, field); //Check if the field is a valid event handler
             for (Class<?> eventClass : EventUtils.getEvents(annotation, field, eventFilter)) {
                 //Go through all events which the field handles and register them
-                this.registerField(owner, instance, annotation, field, eventClass);
+                this.registerField(handler.getOwner(), instance, annotation, field, eventClass);
             }
         }
     }
