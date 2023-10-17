@@ -41,6 +41,15 @@ public interface IExceptionHandler {
         return (handler, event, t) -> {};
     }
 
+    /**
+     * @return A simple exception handler which throws a {@link StopCall} exception causing the event to stop calling other handlers
+     */
+    static IExceptionHandler stopCall() {
+        return (handler, event, t) -> {
+            throw StopCall.INSTANCE;
+        };
+    }
+
 
     /**
      * Handle the thrown exception.
