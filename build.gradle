@@ -93,12 +93,12 @@ publishing {
 
             pom {
                 name = rootProject.name
-                description = "A template for gradle projects"
-                url = "https://github.com/Lenni0451/GradleTemplate"
+                description = "Fast and modular event library for Java"
+                url = "https://github.com/Lenni0451/LambdaEvents"
                 licenses {
                     license {
                         name = "MIT License"
-                        url = "https://github.com/Lenni0451/GradleTemplate/blob/main/LICENSE"
+                        url = "https://github.com/Lenni0451/LambdaEvents/blob/main/LICENSE"
                     }
                 }
                 developers {
@@ -107,9 +107,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection = "scm:git:git://github.com/Lenni0451/GradleTemplate.git"
-                    developerConnection = "scm:git:ssh://github.com/Lenni0451/GradleTemplate.git"
-                    url = "github.com/Lenni0451/GradleTemplate"
+                    connection = "scm:git:git://github.com/Lenni0451/LambdaEvents.git"
+                    developerConnection = "scm:git:ssh://github.com/Lenni0451/LambdaEvents.git"
+                    url = "github.com/Lenni0451/LambdaEvents"
                 }
             }
         }
