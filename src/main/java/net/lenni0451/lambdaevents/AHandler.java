@@ -16,6 +16,7 @@ public abstract class AHandler {
     protected final Object instance;
     @Nonnull
     protected final EventHandler annotation;
+    private final boolean handleCancelled;
 
     /**
      * @param owner      The owner of the handler method
@@ -26,6 +27,7 @@ public abstract class AHandler {
         this.owner = owner;
         this.instance = instance;
         this.annotation = annotation;
+        this.handleCancelled = annotation.handleCancelled();
     }
 
     /**
@@ -57,6 +59,13 @@ public abstract class AHandler {
      */
     public boolean isStatic() {
         return this.instance == null;
+    }
+
+    /**
+     * @return If the handler should handle cancelled events
+     */
+    public boolean shouldHandleCancelled() {
+        return this.handleCancelled;
     }
 
     /**

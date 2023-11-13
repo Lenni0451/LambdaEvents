@@ -208,6 +208,11 @@ public class EventUtils {
             public Class<?>[] events() {
                 return new Class[0];
             }
+
+            @Override
+            public boolean handleCancelled() {
+                return true;
+            }
         };
     }
 

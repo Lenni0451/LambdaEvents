@@ -2,6 +2,7 @@ package net.lenni0451.lambdaevents;
 
 import net.lenni0451.lambdaevents.handler.ConsumerHandler;
 import net.lenni0451.lambdaevents.handler.RunnableHandler;
+import net.lenni0451.lambdaevents.types.ICancellableEvent;
 import net.lenni0451.lambdaevents.utils.EventUtils;
 
 import javax.annotation.Nonnull;
@@ -115,18 +116,7 @@ public class LambdaManager {
     @Nonnull
     public <T> T call(final T event) {
         if (this.alwaysCallParents) return this.callParents(event); //Redirect to callParents() if alwaysCallParents is true
-        AHandler[] handlers = this.handlerArrays.get(event.getClass());
-        if (handlers == null) return event; //No handlers registered for this event
-
-        for (AHandler handler : handlers) {
-            try {
-                handler.call(event);
-            } catch (StopCall ignored) {
-                break; //Stop calling the following handlers
-            } catch (Throwable t) {
-                this.exceptionHandler.handle(handler, event, t); //The handler threw an exception, handle it and continue
-            }
-        }
+        this.call(event.getClass(), event);
         return event;
     }
 
@@ -146,20 +136,28 @@ public class LambdaManager {
             EventUtils.getSuperClasses(parents, clazz);
             return parents.toArray(new Class[0]);
         })) {
-            AHandler[] handlers = this.handlerArrays.get(clazz);
-            if (handlers == null) continue; //No handlers registered for this event class
-
-            for (AHandler handler : handlers) {
-                try {
-                    handler.call(event);
-                } catch (StopCall ignored) {
-                    break; //Stop calling the following handlers
-                } catch (Throwable t) {
-                    this.exceptionHandler.handle(handler, event, t); //The handler threw an exception, handle it and continue
-                }
-            }
+            this.call(clazz, event);
         }
         return event;
+    }
+
+    private <T> void call(final Class<?> clazz, final T event) {
+        AHandler[] handlers = this.handlerArrays.get(clazz);
+        if (handlers == null) return; //No handlers registered for this event
+        ICancellableEvent cancellable = event instanceof ICancellableEvent ? (ICancellableEvent) event : null;
+        for (AHandler handler : handlers) {
+            if (cancellable != null && !handler.shouldHandleCancelled() && cancellable.isCancelled()) {
+                //Skip the handler if the event is cancelled
+                continue;
+            }
+            try {
+                handler.call(event);
+            } catch (StopCall ignored) {
+                return; //Stop calling the following handlers
+            } catch (Throwable t) {
+                this.exceptionHandler.handle(handler, event, t); //The handler threw an exception, handle it and continue
+            }
+        }
     }
 
 

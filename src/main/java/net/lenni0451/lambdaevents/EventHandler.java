@@ -32,4 +32,11 @@ public @interface EventHandler {
      */
     Class<?>[] events() default {};
 
+    /**
+     * If the handler should be called even if the event was cancelled by a previous handler.
+     *
+     * @return If the handler should handle cancelled events
+     */
+    boolean handleCancelled() default true;
+
 }
