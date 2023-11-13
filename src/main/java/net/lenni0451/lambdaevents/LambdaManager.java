@@ -80,9 +80,11 @@ public class LambdaManager {
      * Set the {@link IExceptionHandler} which is used to handle thrown exceptions in event handlers.
      *
      * @param exceptionHandler The {@link IExceptionHandler} which should be used to handle exceptions
+     * @return The current {@link LambdaManager} instance
      */
-    public void setExceptionHandler(final IExceptionHandler exceptionHandler) {
+    public LambdaManager setExceptionHandler(final IExceptionHandler exceptionHandler) {
         this.exceptionHandler = exceptionHandler;
+        return this;
     }
 
     /**
@@ -90,9 +92,11 @@ public class LambdaManager {
      * <b>This does not include static event handlers!</b>
      *
      * @param registerSuperHandler If super classes should be scanned for event handlers
+     * @return The current {@link LambdaManager} instance
      */
-    public void setRegisterSuperHandler(final boolean registerSuperHandler) {
+    public LambdaManager setRegisterSuperHandler(final boolean registerSuperHandler) {
         this.registerSuperHandler = registerSuperHandler;
+        return this;
     }
 
     /**
@@ -100,9 +104,11 @@ public class LambdaManager {
      * Basically a redirect from {@link #call(Object)} to {@link #callParents(Object)}.
      *
      * @param alwaysCallParents If all event handlers for parent classes should be called
+     * @return The current {@link LambdaManager} instance
      */
-    public void setAlwaysCallParents(final boolean alwaysCallParents) {
+    public LambdaManager setAlwaysCallParents(final boolean alwaysCallParents) {
         this.alwaysCallParents = alwaysCallParents;
+        return this;
     }
 
 
