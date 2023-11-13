@@ -16,11 +16,14 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 @ParametersAreNonnullByDefault
 public class LambdaManager {
+
+    private static final Function<String, IllegalArgumentException> UNSUPPORTED_EVENT_EXCEPTION = (event) -> new IllegalArgumentException("Event '" + event + "' is not supported");
 
     /**
      * Create a new {@link LambdaManager} instance using a {@link HashMap} and {@link ArrayList}.<br>
@@ -51,17 +54,11 @@ public class LambdaManager {
     private final Supplier<List<AHandler>> listSupplier;
     private final IGenerator generator;
 
+    @Nullable
+    private IEventFilter eventFilter = null;
     private IExceptionHandler exceptionHandler = IExceptionHandler.infoPrint();
     private boolean registerSuperHandler = false;
     private boolean alwaysCallParents = false;
-
-    /**
-     * <b>Deprecated constructor, use {@link #LambdaManager(Supplier, Supplier, IGenerator)}.</b>
-     */
-    @Deprecated
-    public LambdaManager(final Map<Class<?>, List<AHandler>> handlers, final Supplier<List<AHandler>> listSupplier, final IGenerator generator) {
-        this(handlers instanceof HashMap ? HashMap::new : ConcurrentHashMap::new, listSupplier, generator);
-    }
 
     /**
      * @param mapSupplier  The supplier for the maps used to store the event to handler mappings
@@ -74,6 +71,19 @@ public class LambdaManager {
         this.parentsCache = mapSupplier.get();
         this.listSupplier = listSupplier;
         this.generator = generator;
+    }
+
+    /**
+     * Set the event filter which is used to validate registered and called events.<br>
+     * This can be used to only allow certain events to be registered or called.<br>
+     * If an event is not allowed
+     *
+     * @param eventFilter The {@link Consumer} which should be used to filter events
+     * @return The current {@link LambdaManager} instance
+     */
+    public LambdaManager setEventFilter(@Nullable final IEventFilter eventFilter) {
+        this.eventFilter = eventFilter;
+        return this;
     }
 
     /**
@@ -122,6 +132,7 @@ public class LambdaManager {
     @Nonnull
     public <T> T call(final T event) {
         if (this.alwaysCallParents) return this.callParents(event); //Redirect to callParents() if alwaysCallParents is true
+        if (this.eventFilter != null && !this.eventFilter.check(event.getClass(), IEventFilter.CheckType.CALL)) return event;
         this.call(event.getClass(), event);
         return event;
     }
@@ -136,6 +147,7 @@ public class LambdaManager {
      */
     @Nonnull
     public <T> T callParents(final T event) {
+        if (this.eventFilter != null && !this.eventFilter.check(event.getClass(), IEventFilter.CheckType.CALL)) return event;
         for (Class<?> clazz : this.parentsCache.computeIfAbsent(event.getClass(), clazz -> {
             //Calculate all parent classes and interfaces and cache them
             Set<Class<?>> parents = new LinkedHashSet<>();
@@ -247,6 +259,7 @@ public class LambdaManager {
         if (events.length == 0) throw new IllegalArgumentException("No events specified");
         synchronized (this.handlers) {
             for (Class<?> event : events) {
+                if (this.eventFilter != null && this.eventFilter.check(event, IEventFilter.CheckType.EXPLICIT_REGISTER)) continue;
                 //Add a new RunnableHandler for each event
                 List<AHandler> handlers = this.handlers.computeIfAbsent(event, (key) -> this.listSupplier.get());
                 handlers.add(new RunnableHandler(runnable.getClass(), null, EventUtils.newEventHandler(priority), runnable));
@@ -280,6 +293,7 @@ public class LambdaManager {
         if (events.length == 0) throw new IllegalArgumentException("No events specified");
         synchronized (this.handlers) {
             for (Class<?> event : events) {
+                if (this.eventFilter != null && this.eventFilter.check(event, IEventFilter.CheckType.EXPLICIT_REGISTER)) continue;
                 //Add a new ConsumerHandler for each event
                 List<AHandler> handlers = this.handlers.computeIfAbsent(event, (key) -> this.listSupplier.get());
                 handlers.add(new ConsumerHandler(consumer.getClass(), null, EventUtils.newEventHandler(priority), consumer));
@@ -290,8 +304,14 @@ public class LambdaManager {
 
     private void register(@Nullable final Class<?> event, final Class<?> owner, @Nullable final Object instance, final boolean isStatic, final boolean registerSuperHandler) {
         Predicate<Class<?>> eventFilter;
-        if (event == null) eventFilter = e -> true; //Register all events
-        else eventFilter = e -> e.equals(event); //Only register the given event
+        if (event == null) {
+            //Register all events
+            eventFilter = e -> this.eventFilter == null || this.eventFilter.check(e, IEventFilter.CheckType.REGISTER);
+        } else {
+            //Only register the given event
+            if (this.eventFilter != null && !this.eventFilter.check(event, IEventFilter.CheckType.EXPLICIT_REGISTER)) return;
+            eventFilter = e -> e.equals(event);
+        }
 
         for (EventUtils.MethodHandler handler : EventUtils.getMethods(owner, method -> Modifier.isStatic(method.getModifiers()) == isStatic, registerSuperHandler)) {
             //Register all methods which handle the given event
