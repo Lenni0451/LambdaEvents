@@ -23,7 +23,7 @@ public class HandleCancelledTest {
 
     @ParameterizedTest
     @MethodSource(DATA_SOURCE)
-    void registered(final LambdaManager manager) {
+    void test(final LambdaManager manager) {
         assertDoesNotThrow(() -> manager.register(this));
         CancellableEvent event = new CancellableEvent();
         event.setCancelled(true);

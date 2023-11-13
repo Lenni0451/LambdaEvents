@@ -523,6 +523,32 @@ public class LambdaManager {
         }
     }
 
+    /**
+     * Unregister all handlers for the given event.
+     *
+     * @param event The event class
+     */
+    public void unregisterAll(final Class<?> event) {
+        synchronized (this.handlers) {
+            this.checkCallChain(event, Collections.emptyList());
+        }
+    }
+
+    /**
+     * Unregister all handlers for the given event which match the given filter.
+     *
+     * @param event  The event class
+     * @param filter The filter which should be used to filter the handlers
+     */
+    public void unregisterAll(final Class<?> event, final Predicate<Class<?>> filter) {
+        synchronized (this.handlers) {
+            List<AHandler> handlers = this.handlers.get(event);
+            if (handlers == null) return;
+            handlers.removeIf(handler -> filter.test(handler.getOwner()));
+            this.checkCallChain(event, handlers);
+        }
+    }
+
 
     private void checkCallChain(final Class<?> event, final List<AHandler> handlers) {
         if (handlers.isEmpty()) {

@@ -27,7 +27,7 @@ public class EventFilterTest {
 
     @ParameterizedTest
     @MethodSource(DATA_SOURCE)
-    void registered(final LambdaManager manager) {
+    void test(final LambdaManager manager) {
         manager.setEventFilter((event, type) -> {
             switch (type) {
                 case REGISTER:
