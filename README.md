@@ -23,6 +23,7 @@ Fast and modular event library for Java.
     - [Exception handling](#exception-handling)
       - [Registration](#registration)
       - [Calling](#calling-1)
+    - [Event Filter](#event-filter)
   - [JMH Benchmark](#jmh-benchmark)
 
 
@@ -72,9 +73,9 @@ The following implementations are provided:
  - ReflectionGenerator
  - MethodHandleGenerator
  - LambdaMetaFactoryGenerator
- - ASMGenerator (Requires [Reflect](https://github.com/Lenni0451/Reflect))
+ - ASMGenerator (Requires [Reflect](https://github.com/Lenni0451/Reflect) and [ASM](https://mvnrepository.com/artifact/org.ow2.asm/asm))
 
-Check out the JMH Benchmark section for performance comparisons.
+Check out the [JMH Benchmark](#jmh-benchmark) section for performance comparisons.
 
 The `MethodHandleGenerator` and the `LambdaMetaFactoryGenerator` have an optional `MethodHandles.Lookup` parameter.
 
@@ -90,7 +91,7 @@ You can pass any object as an event. Remember that the class is used to identify
 LambdaEvents has 6 different ways to listen to events:
 
 | Type                    | Description                                                |
-|-------------------------|------------------------------------------------------------|
+| ----------------------- | ---------------------------------------------------------- |
 | Static methods          | A static method annotated with `@EventHandler`             |
 | Virtual methods         | A virtual/non-static method annotated with `@EventHandler` |
 | (static) Runnable field | A runnable field annotated with `@EventHandler`            |
@@ -139,6 +140,21 @@ eventManager.unregister(oldExampleInstance);
 eventManager.unregister(handler, Event.class);
 ```
 
+You can also unregister all event handlers for a specific event type by calling the `unregisterAll` method.
+```java
+//Unregister all event handlers for the event type
+//This includes static and virtual event handlers
+eventManager.unregisterAll(Event.class);
+
+//Unregister all event handler for the event type and the given class predicate
+//In this case all handlers which extend AbstractVirtualHandler are unregistered
+//This includes static and virtual event handlers
+eventManager.unregisterAll(Event.class, AbstractVirtualHandler.class::isAssignableFrom);
+
+//The unregisterAll method also has an optional boolean to only unregister static/virtual event handlers
+eventManager.unregisterAll(event, predicate, true /*static*/);
+```
+
 ### Calling
 To call an event you need to call the `call` method of the `LambdaManager` instance passing the event object.
 ```java
@@ -152,9 +168,10 @@ The higher the priority is, the earlier the event handler is called.
 ### Cancelling
 #### Events
 Since there is no requirement for an event to implement an interface or extend a class you have to implement the cancellation yourself.\
+Even though it's not a requirement, it is recommended to implement the `ICancellableEvent` interface.\
 Example:
 ```java
-public class Event {
+public class Event implements ICancellableEvent {
     private boolean cancelled = false;
 
     public boolean isCancelled() {
@@ -177,6 +194,22 @@ public class Caller {
     }
 }
 ```
+The `ICancellableEvent` interface is used for determining if an event handler should handle a cancelled event.\
+The handler can specify this by adding `handleCancelled` (default true) to the `@EventHandler` annotation.\
+Example:
+```java
+public class Handler {
+    @EventHandler
+    public void handleEvent(final Event event) {
+        //This handler will be called even if the event is cancelled
+    }
+
+    @EventHandler(handleCancelled = false)
+    public void handleEvent(final Event event) {
+        //This handler will not be called if the event is cancelled
+    }
+}
+```
 #### Call chain
 To cancel the event call chain and prevent following event handlers from being executed you can throw the `StopCall.INSTANCE` exception.
 
@@ -188,13 +221,39 @@ If an exception is thrown by an event handler, the `ExceptionHandler` of the `La
 It receives the handler, the event and the thrown exception as parameters.\
 By default the `ExceptionHandler` will print the stack trace of the exception to the console (`System.err`).
 
+### Event Filter
+To make sure the `LambdaManager` only registers only the correct event types you can use the `IEventFilter`.\
+It is called with the event type and a type from where the filter was called.\
+The filter can return `true` to allow the registration/calling of the event or `false` to skip it. An exception can be thrown to notify the caller that the event type is not allowed.\
+Check types:
+| Type              | Description                                                                                             |
+| ----------------- | ------------------------------------------------------------------------------------------------------- |
+| CALL              | The filter was called from the `call` or the `callParents` method                                       |
+| REGISTER          | The filter was called from the `register` method without an explicit event type (wildcard registration) |
+| EXPLICIT_REGISTER | The filter was called from the `register` method with an explicitly specified event type                |
+
+The `unregister` method does not call the filter.\
+Example filter:
+```java
+public boolean check(final Class event, final CheckType checkType) {
+    if (event instanceof EventBase) return true;
+    if (CheckType.CALL.equals(checkType)) throw new IllegalArgumentException();
+    if (CheckType.EXPLICIT_REGISTER.equals(checkType)) throw new IllegalArgumentException();
+    return false;
+}
+```
+This filter will allow any event which extends `EventBase`.\
+If an invalid event is passed to the `call` method an `IllegalArgumentException` will be thrown.\
+If an event is registered explicitly an `IllegalArgumentException` will be thrown.\
+Any other event will be blocked without throwing an exception (silent block).
+
 ## JMH Benchmark
 The Benchmark shows the average time it takes to call an event 100_000 times.\
 The lower the time is, the better the call performance of the generator is.\
 The tests were run using Java 17 and may vary on other Java versions.
 
 | Benchmark                           | Mode | Cnt | Score       | Error      | Units |
-|-------------------------------------|------|-----|-------------|------------|-------|
+| ----------------------------------- | ---- | --- | ----------- | ---------- | ----- |
 | CallBenchmark.callASM               | avgt | 4   | 1253339,286 | 81976,516  | ns/op |
 | CallBenchmark.callLambdaMetaFactory | avgt | 4   | 1270657,312 | 133794,400 | ns/op |
 | CallBenchmark.callMethodHandles     | avgt | 4   | 1893870,724 | 569223,318 | ns/op |
