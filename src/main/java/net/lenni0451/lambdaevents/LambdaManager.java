@@ -524,7 +524,8 @@ public class LambdaManager {
     }
 
     /**
-     * Unregister all handlers for the given event.
+     * Unregister all handlers for the given event.<br>
+     * This unregisters both static and non-static handlers.
      *
      * @param event The event class
      */
@@ -535,16 +536,33 @@ public class LambdaManager {
     }
 
     /**
-     * Unregister all handlers for the given event which match the given filter.
+     * Unregister all handlers for the given event which match the given filter.<br>
+     * This unregisters both static and non-static handlers.
      *
      * @param event  The event class
      * @param filter The filter which should be used to filter the handlers
      */
     public void unregisterAll(final Class<?> event, final Predicate<Class<?>> filter) {
         synchronized (this.handlers) {
+            this.unregisterAll(event, filter, false);
+            this.unregisterAll(event, filter, true);
+        }
+    }
+
+    /**
+     * Unregister all handlers for the given event which match the given filter.
+     *
+     * @param event  The event class
+     * @param filter The filter which should be used to filter the handlers
+     */
+    public void unregisterAll(final Class<?> event, final Predicate<Class<?>> filter, final boolean staticHandlers) {
+        synchronized (this.handlers) {
             List<AHandler> handlers = this.handlers.get(event);
             if (handlers == null) return;
-            handlers.removeIf(handler -> filter.test(handler.getOwner()));
+            handlers.removeIf(handler -> {
+                if (handler.isStatic() != staticHandlers) return false;
+                return filter.test(handler.getOwner());
+            });
             this.checkCallChain(event, handlers);
         }
     }
