@@ -552,8 +552,9 @@ public class LambdaManager {
     /**
      * Unregister all handlers for the given event which match the given filter.
      *
-     * @param event  The event class
-     * @param filter The filter which should be used to filter the handlers
+     * @param event          The event class
+     * @param filter         The filter which should be used to filter the handlers
+     * @param staticHandlers If static handlers should be unregistered
      */
     public void unregisterAll(final Class<?> event, final Predicate<Class<?>> filter, final boolean staticHandlers) {
         synchronized (this.handlers) {
