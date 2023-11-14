@@ -15,6 +15,10 @@ public class EventFilterTest {
     private boolean calledCall = false;
     private boolean calledString = false;
     private boolean calledInteger = false;
+    private boolean calledStringRunnable = false;
+    private boolean calledIntegerRunnable = false;
+    private boolean calledDirectStringRunnable = false;
+    private boolean calledDirectIntegerRunnable = false;
 
     @BeforeEach
     void reset() {
@@ -23,6 +27,10 @@ public class EventFilterTest {
         this.calledCall = false;
         this.calledString = false;
         this.calledInteger = false;
+        this.calledStringRunnable = false;
+        this.calledIntegerRunnable = false;
+        this.calledDirectStringRunnable = false;
+        this.calledDirectIntegerRunnable = false;
     }
 
     @ParameterizedTest
@@ -53,13 +61,31 @@ public class EventFilterTest {
         manager.call("Test");
         assertTrue(this.calledCall);
         assertTrue(this.calledString);
+        assertTrue(this.calledStringRunnable);
 
         manager.register(Integer.class, this);
         assertTrue(this.calledExplicitRegister);
         manager.call(1);
         assertFalse(this.calledInteger);
+        assertFalse(this.calledIntegerRunnable);
+        assertFalse(this.calledDirectIntegerRunnable);
+
+        manager.register(this.directStringRunnable, String.class);
+        manager.register(this.directIntegerRunnable, Integer.class);
+        manager.call("Test");
+        assertTrue(this.calledDirectStringRunnable);
+        assertFalse(this.calledDirectIntegerRunnable);
+        manager.call(1);
+        assertFalse(this.calledDirectIntegerRunnable);
     }
 
+
+    @EventHandler(events = String.class)
+    public final Runnable stringRunnable = () -> this.calledStringRunnable = true;
+    @EventHandler(events = Integer.class)
+    public final Runnable integerRunnable = () -> this.calledIntegerRunnable = true;
+    public final Runnable directStringRunnable = () -> this.calledDirectStringRunnable = true;
+    public final Runnable directIntegerRunnable = () -> this.calledDirectIntegerRunnable = true;
 
     @EventHandler
     public void string(final String s) {

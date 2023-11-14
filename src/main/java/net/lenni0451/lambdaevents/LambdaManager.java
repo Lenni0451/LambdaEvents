@@ -259,7 +259,7 @@ public class LambdaManager {
         if (events.length == 0) throw new IllegalArgumentException("No events specified");
         synchronized (this.handlers) {
             for (Class<?> event : events) {
-                if (this.eventFilter != null && this.eventFilter.check(event, IEventFilter.CheckType.EXPLICIT_REGISTER)) continue;
+                if (this.eventFilter != null && !this.eventFilter.check(event, IEventFilter.CheckType.EXPLICIT_REGISTER)) continue;
                 //Add a new RunnableHandler for each event
                 List<AHandler> handlers = this.handlers.computeIfAbsent(event, (key) -> this.listSupplier.get());
                 handlers.add(new RunnableHandler(runnable.getClass(), null, EventUtils.newEventHandler(priority), runnable));
@@ -293,7 +293,7 @@ public class LambdaManager {
         if (events.length == 0) throw new IllegalArgumentException("No events specified");
         synchronized (this.handlers) {
             for (Class<?> event : events) {
-                if (this.eventFilter != null && this.eventFilter.check(event, IEventFilter.CheckType.EXPLICIT_REGISTER)) continue;
+                if (this.eventFilter != null && !this.eventFilter.check(event, IEventFilter.CheckType.EXPLICIT_REGISTER)) continue;
                 //Add a new ConsumerHandler for each event
                 List<AHandler> handlers = this.handlers.computeIfAbsent(event, (key) -> this.listSupplier.get());
                 handlers.add(new ConsumerHandler(consumer.getClass(), null, EventUtils.newEventHandler(priority), consumer));
