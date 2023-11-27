@@ -244,8 +244,8 @@ public class LambdaManager {
      * @param runnable The {@link Runnable} which should be registered
      * @param events   The events for which the {@link Runnable} should be registered
      */
-    public void register(final Runnable runnable, final Class<?>... events) {
-        this.register(runnable, 0, events);
+    public void registerRunnable(final Runnable runnable, final Class<?>... events) {
+        this.registerRunnable(runnable, 0, events);
     }
 
     /**
@@ -255,7 +255,7 @@ public class LambdaManager {
      * @param priority The priority of the {@link Runnable}
      * @param events   The events for which the {@link Runnable} should be registered
      */
-    public void register(final Runnable runnable, final int priority, final Class<?>... events) {
+    public void registerRunnable(final Runnable runnable, final int priority, final Class<?>... events) {
         if (events.length == 0) throw new IllegalArgumentException("No events specified");
         synchronized (this.handlers) {
             for (Class<?> event : events) {
@@ -276,8 +276,8 @@ public class LambdaManager {
      * @param consumer The {@link Consumer} which should be registered
      * @param events   The events for which the {@link Consumer} should be registered
      */
-    public void register(final Consumer<?> consumer, final Class<?>... events) {
-        this.register(consumer, 0, events);
+    public void registerConsumer(final Consumer<?> consumer, final Class<?>... events) {
+        this.registerConsumer(consumer, 0, events);
     }
 
     /**
@@ -289,7 +289,7 @@ public class LambdaManager {
      * @param priority The priority of the {@link Consumer}
      * @param events   The events for which the {@link Consumer} should be registered
      */
-    public void register(final Consumer<?> consumer, final int priority, final Class<?>... events) {
+    public void registerConsumer(final Consumer<?> consumer, final int priority, final Class<?>... events) {
         if (events.length == 0) throw new IllegalArgumentException("No events specified");
         synchronized (this.handlers) {
             for (Class<?> event : events) {
@@ -300,6 +300,38 @@ public class LambdaManager {
                 this.checkCallChain(event, handlers);
             }
         }
+    }
+
+    /**
+     * <b>Deprecated! Please use {@link #registerRunnable(Runnable, Class[])} instead</b>
+     */
+    @Deprecated
+    public void register(final Runnable runnable, final Class<?>... events) {
+        this.registerRunnable(runnable, events);
+    }
+
+    /**
+     * <b>Deprecated! Please use {@link #registerRunnable(Runnable, int, Class[])} instead</b>
+     */
+    @Deprecated
+    public void register(final Runnable runnable, final int priority, final Class<?>... events) {
+        this.registerRunnable(runnable, priority, events);
+    }
+
+    /**
+     * <b>Deprecated! Please use {@link #registerConsumer(Consumer, Class[])} instead</b>
+     */
+    @Deprecated
+    public void register(final Consumer<?> consumer, final Class<?>... events) {
+        this.registerConsumer(consumer, events);
+    }
+
+    /**
+     * <b>Deprecated! Please use {@link #registerConsumer(Consumer, int, Class[])} instead</b>
+     */
+    @Deprecated
+    public void register(final Consumer<?> consumer, final int priority, final Class<?>... events) {
+        this.registerConsumer(consumer, priority, events);
     }
 
     private void register(@Nullable final Class<?> event, final Class<?> owner, @Nullable final Object instance, final boolean isStatic, final boolean registerSuperHandler) {
@@ -442,7 +474,7 @@ public class LambdaManager {
      *
      * @param runnable The {@link Runnable} to unregister
      */
-    public void unregister(final Runnable runnable) {
+    public void unregisterRunnable(final Runnable runnable) {
         synchronized (this.handlers) {
             Map<Class<?>, List<AHandler>> checked = new HashMap<>();
             for (Map.Entry<Class<?>, List<AHandler>> entry : this.handlers.entrySet()) {
@@ -464,9 +496,9 @@ public class LambdaManager {
      * @param runnable The {@link Runnable} to unregister
      * @param events   The events from which the {@link Runnable} should be unregistered
      */
-    public void unregister(final Runnable runnable, final Class<?>... events) {
+    public void unregisterRunnable(final Runnable runnable, final Class<?>... events) {
         if (events.length == 0) {
-            this.unregister(runnable); //Redirect to the other method if no events are specified
+            this.unregisterRunnable(runnable); //Redirect to the other method if no events are specified
             return;
         }
         synchronized (this.handlers) {
@@ -485,7 +517,7 @@ public class LambdaManager {
      *
      * @param consumer The {@link Consumer} to unregister
      */
-    public void unregister(final Consumer<?> consumer) {
+    public void unregisterConsumer(final Consumer<?> consumer) {
         synchronized (this.handlers) {
             Map<Class<?>, List<AHandler>> checked = new HashMap<>();
             for (Map.Entry<Class<?>, List<AHandler>> entry : this.handlers.entrySet()) {
@@ -507,9 +539,9 @@ public class LambdaManager {
      * @param consumer The {@link Consumer} to unregister
      * @param events   The events from which the {@link Consumer} should be unregistered
      */
-    public void unregister(final Consumer<?> consumer, final Class<?>... events) {
+    public void unregisterConsumer(final Consumer<?> consumer, final Class<?>... events) {
         if (events.length == 0) {
-            this.unregister(consumer); //Redirect to the other method if no events are specified
+            this.unregisterConsumer(consumer); //Redirect to the other method if no events are specified
             return;
         }
         synchronized (this.handlers) {
@@ -521,6 +553,38 @@ public class LambdaManager {
                 this.checkCallChain(event, handlers);
             }
         }
+    }
+
+    /**
+     * <b>Deprecated! Please use {@link #unregisterRunnable(Runnable)} instead</b>
+     */
+    @Deprecated
+    public void unregister(final Runnable runnable) {
+        this.unregisterRunnable(runnable);
+    }
+
+    /**
+     * <b>Deprecated! Please use {@link #unregisterRunnable(Runnable, Class[])} instead</b>
+     */
+    @Deprecated
+    public void unregister(final Runnable runnable, final Class<?>... events) {
+        this.unregisterRunnable(runnable, events);
+    }
+
+    /**
+     * <b>Deprecated! Please use {@link #unregisterConsumer(Consumer)} instead</b>
+     */
+    @Deprecated
+    public void unregister(final Consumer<?> consumer) {
+        this.unregisterConsumer(consumer);
+    }
+
+    /**
+     * <b>Deprecated! Please use {@link #unregisterConsumer(Consumer, Class[])} instead</b>
+     */
+    @Deprecated
+    public void unregister(final Consumer<?> consumer, final Class<?>... events) {
+        this.unregisterConsumer(consumer, events);
     }
 
     /**

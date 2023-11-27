@@ -70,8 +70,8 @@ public class EventFilterTest {
         assertFalse(this.calledIntegerRunnable);
         assertFalse(this.calledDirectIntegerRunnable);
 
-        manager.register(this.directStringRunnable, String.class);
-        manager.register(this.directIntegerRunnable, Integer.class);
+        manager.registerRunnable(this.directStringRunnable, String.class);
+        manager.registerRunnable(this.directIntegerRunnable, Integer.class);
         manager.call("Test");
         assertTrue(this.calledDirectStringRunnable);
         assertFalse(this.calledDirectIntegerRunnable);
