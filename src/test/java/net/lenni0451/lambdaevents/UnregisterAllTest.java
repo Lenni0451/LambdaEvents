@@ -5,8 +5,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import static net.lenni0451.lambdaevents.TestManager.DATA_SOURCE;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class UnregisterAllTest {
 
@@ -49,6 +48,20 @@ public class UnregisterAllTest {
         assertFalse(this.calledObject);
         assertFalse(this.calledString);
         assertTrue(this.calledInteger);
+
+        this.reset();
+        manager.unregisterAll(Integer.class, (owner, instance) -> {
+            assertEquals(UnregisterAllTest.class, owner);
+            assertTrue(instance.isPresent());
+            assertEquals(this, instance.get());
+            return true;
+        });
+        manager.call(new Object());
+        manager.call("Test");
+        manager.call(1);
+        assertFalse(this.calledObject);
+        assertFalse(this.calledString);
+        assertFalse(this.calledInteger);
     }
 
 

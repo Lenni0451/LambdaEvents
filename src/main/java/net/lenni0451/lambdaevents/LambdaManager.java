@@ -15,10 +15,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 @ParametersAreNonnullByDefault
 public class LambdaManager {
@@ -628,6 +625,23 @@ public class LambdaManager {
                 if (handler.isStatic() != staticHandlers) return false;
                 return filter.test(handler.getOwner());
             });
+            this.checkCallChain(event, handlers);
+        }
+    }
+
+    /**
+     * Unregister all handlers for the given event which match the given filter.<br>
+     * This unregisters both static and non-static handlers.<br>
+     * The optional parameter is the instance of the handler or empty if the handler is static.
+     *
+     * @param event  The event class
+     * @param filter The filter which should be used to filter the handlers
+     */
+    public void unregisterAll(final Class<?> event, final BiPredicate<Class<?>, Optional<Object>> filter) {
+        synchronized (this.handlers) {
+            List<AHandler> handlers = this.handlers.get(event);
+            if (handlers == null) return;
+            handlers.removeIf(handler -> filter.test(handler.getOwner(), Optional.ofNullable(handler.getInstance())));
             this.checkCallChain(event, handlers);
         }
     }
