@@ -15,12 +15,13 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.*;
+import java.util.function.BiPredicate;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 @ParametersAreNonnullByDefault
 public class LambdaManager {
-
-    private static final Function<String, IllegalArgumentException> UNSUPPORTED_EVENT_EXCEPTION = (event) -> new IllegalArgumentException("Event '" + event + "' is not supported");
 
     /**
      * Create a new {@link LambdaManager} instance using a {@link HashMap} and {@link ArrayList}.<br>
