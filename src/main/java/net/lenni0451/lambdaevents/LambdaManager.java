@@ -260,7 +260,7 @@ public class LambdaManager {
                 if (this.eventFilter != null && !this.eventFilter.check(event, IEventFilter.CheckType.EXPLICIT_REGISTER)) continue;
                 //Add a new RunnableHandler for each event
                 List<AHandler> handlers = this.handlers.computeIfAbsent(event, (key) -> this.listSupplier.get());
-                handlers.add(new RunnableHandler(runnable.getClass(), null, EventUtils.newEventHandler(priority), runnable));
+                handlers.add(new RunnableHandler(runnable.getClass(), runnable, EventUtils.newEventHandler(priority), runnable));
                 this.checkCallChain(event, handlers);
             }
         }
@@ -294,7 +294,7 @@ public class LambdaManager {
                 if (this.eventFilter != null && !this.eventFilter.check(event, IEventFilter.CheckType.EXPLICIT_REGISTER)) continue;
                 //Add a new ConsumerHandler for each event
                 List<AHandler> handlers = this.handlers.computeIfAbsent(event, (key) -> this.listSupplier.get());
-                handlers.add(new ConsumerHandler(consumer.getClass(), null, EventUtils.newEventHandler(priority), consumer));
+                handlers.add(new ConsumerHandler(consumer.getClass(), consumer, EventUtils.newEventHandler(priority), consumer));
                 this.checkCallChain(event, handlers);
             }
         }
