@@ -3,12 +3,9 @@ package net.lenni0451.lambdaevents;
 import net.lenni0451.lambdaevents.utils.EventException;
 import net.lenni0451.lambdaevents.utils.ThrowingExceptionHandler;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  * An interface to handle all exceptions thrown by event handlers.
  */
-@ParametersAreNonnullByDefault
 public interface IExceptionHandler {
 
     /**

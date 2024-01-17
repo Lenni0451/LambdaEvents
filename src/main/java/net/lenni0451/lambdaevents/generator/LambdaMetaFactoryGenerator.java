@@ -10,7 +10,6 @@ import net.lenni0451.lambdaevents.utils.LookupUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -21,7 +20,6 @@ import java.util.function.Consumer;
 /**
  * The {@link IGenerator} implementation which calls the handler method using a {@link LambdaMetafactory} generated {@link Runnable} or {@link Consumer}.
  */
-@ParametersAreNonnullByDefault
 public class LambdaMetaFactoryGenerator implements IGenerator {
 
     private final MethodHandles.Lookup lookup;

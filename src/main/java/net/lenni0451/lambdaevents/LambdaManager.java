@@ -7,7 +7,6 @@ import net.lenni0451.lambdaevents.utils.EventUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -20,7 +19,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-@ParametersAreNonnullByDefault
 public class LambdaManager {
 
     /**

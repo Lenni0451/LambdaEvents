@@ -2,13 +2,11 @@ package net.lenni0451.lambdaevents;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Method;
 
 /**
  * The generator interface for the {@link AHandler} implementations.
  */
-@ParametersAreNonnullByDefault
 public interface IGenerator {
 
     /**

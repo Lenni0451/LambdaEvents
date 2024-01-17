@@ -8,7 +8,6 @@ import net.lenni0451.reflect.wrapper.ASMWrapper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
@@ -19,7 +18,6 @@ import static net.lenni0451.reflect.wrapper.ASMWrapper.*;
  * <b>This requires the <a href="https://github.com/Lenni0451/Reflect">Reflect library</a> to work (<a href="https://mvnrepository.com/artifact/net.lenni0451/Reflect">maven</a>)!</b><br>
  * <b>This also requires <a href="https://asm.ow2.io/">ASM</a> to work (<a href="https://mvnrepository.com/artifact/org.ow2.asm/asm">maven</a>)!</b>
  */
-@ParametersAreNonnullByDefault
 public class ASMGenerator implements IGenerator {
 
     @Nonnull

@@ -4,12 +4,9 @@ import lombok.SneakyThrows;
 import net.lenni0451.lambdaevents.AHandler;
 import net.lenni0451.lambdaevents.IExceptionHandler;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  * An {@link IExceptionHandler} which rethrows the exception
  */
-@ParametersAreNonnullByDefault
 public class ThrowingExceptionHandler implements IExceptionHandler {
 
     @Override

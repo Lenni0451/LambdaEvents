@@ -4,7 +4,6 @@ import lombok.Data;
 import net.lenni0451.lambdaevents.EventHandler;
 
 import javax.annotation.Nonnull;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
@@ -16,7 +15,6 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-@ParametersAreNonnullByDefault
 public class EventUtils {
 
     /**
@@ -272,7 +270,6 @@ public class EventUtils {
      * A wrapper class for an event handler method with it's {@link EventHandler} annotation.
      */
     @Data
-    @ParametersAreNonnullByDefault
     public static class MethodHandler {
         @Nonnull
         private final Class<?> owner;
@@ -286,7 +283,6 @@ public class EventUtils {
      * A wrapper class for an event handler field with it's {@link EventHandler} annotation.
      */
     @Data
-    @ParametersAreNonnullByDefault
     public static class FieldHandler {
         @Nonnull
         private final Class<?> owner;

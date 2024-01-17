@@ -3,7 +3,6 @@ package net.lenni0451.lambdaevents.utils;
 import lombok.SneakyThrows;
 
 import javax.annotation.Nonnull;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
@@ -15,7 +14,6 @@ import java.util.WeakHashMap;
 /**
  * Various utils for {@link MethodHandles.Lookup}.
  */
-@ParametersAreNonnullByDefault
 public class LookupUtils {
 
     private static final Map<ClassLoader, LookupGetterLoader> loaders = Collections.synchronizedMap(new WeakHashMap<>());

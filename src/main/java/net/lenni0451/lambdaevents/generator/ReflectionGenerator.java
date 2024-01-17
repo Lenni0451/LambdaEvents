@@ -8,13 +8,11 @@ import net.lenni0451.lambdaevents.handler.reflection.VirtualReflectionHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Method;
 
 /**
  * The {@link IGenerator} implementation which calls the handler method using reflection.
  */
-@ParametersAreNonnullByDefault
 public class ReflectionGenerator implements IGenerator {
 
     @Override

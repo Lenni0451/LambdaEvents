@@ -5,12 +5,10 @@ import net.lenni0451.lambdaevents.EventHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * The {@link AHandler} implementation for {@link Runnable} events without an event parameter.
  */
-@ParametersAreNonnullByDefault
 public class RunnableHandler extends AHandler {
 
     @Nonnull

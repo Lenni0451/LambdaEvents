@@ -6,14 +6,12 @@ import net.lenni0451.lambdaevents.EventHandler;
 import net.lenni0451.lambdaevents.utils.EventUtils;
 
 import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Method;
 
 /**
  * The {@link AHandler} implementation which calls the handler method using reflection.<br>
  * <b>Only for use if the method has the event as the only parameter.</b>
  */
-@ParametersAreNonnullByDefault
 public class ReflectionHandler extends AHandler {
 
     private final Method method;

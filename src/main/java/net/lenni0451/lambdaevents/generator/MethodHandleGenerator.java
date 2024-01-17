@@ -10,7 +10,6 @@ import net.lenni0451.lambdaevents.utils.LookupUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
@@ -18,7 +17,6 @@ import java.lang.reflect.Method;
 /**
  * The {@link IGenerator} implementation which calls the handler method using method handles.
  */
-@ParametersAreNonnullByDefault
 public class MethodHandleGenerator implements IGenerator {
 
     private final MethodHandles.Lookup lookup;
