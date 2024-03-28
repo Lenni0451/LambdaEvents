@@ -1,6 +1,6 @@
 package net.lenni0451.lambdaevents;
 
-import net.lenni0451.lambdaevents.test_classes.CancellableEvent;
+import net.lenni0451.lambdaevents.types.ICancellableEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -48,6 +48,20 @@ public class HandleCancelledTest {
     @EventHandler(handleCancelled = false)
     public void onCancelledIgnored(final CancellableEvent event) {
         this.calledCancelledIgnored = true;
+    }
+
+
+    public static class CancellableEvent implements ICancellableEvent {
+        private boolean cancelled;
+
+        public void setCancelled(final boolean cancelled) {
+            this.cancelled = cancelled;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return this.cancelled;
+        }
     }
 
 }
