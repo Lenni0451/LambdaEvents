@@ -34,12 +34,15 @@ public class EventUtils {
         if (registerSuperHandler) getSuperClasses(classes, owner);
         else classes.add(owner);
 
+        Set<MethodID> methodIDs = new HashSet<>();
         for (Class<?> current : classes) {
             for (Method method : current.getDeclaredMethods()) {
                 EventHandler annotation = method.getDeclaredAnnotation(EventHandler.class);
                 if (annotation == null) continue; //Doesn't have the annotation
                 if (!accept.test(method)) continue; //Doesn't match the predicate
 
+                MethodID id = new MethodID(method.getName(), method.getParameterTypes());
+                if (!Modifier.isPrivate(method.getModifiers()) && !methodIDs.add(id)) continue; //Already added this method
                 handler.add(new MethodHandler(current, annotation, method));
             }
         }
@@ -265,6 +268,17 @@ public class EventUtils {
         }
     }
 
+
+    /**
+     * A class to identify a method by its name and parameters.
+     */
+    @Data
+    private static class MethodID {
+        @Nonnull
+        private final String name;
+        @Nonnull
+        private final Class<?>[] params;
+    }
 
     /**
      * A wrapper class for an event handler method with it's {@link EventHandler} annotation.
