@@ -33,15 +33,15 @@ public interface IEventFilter {
 
     enum CheckType {
         /**
-         * The event is called
+         * The event is called.
          */
         CALL,
         /**
-         * The event is registered without specifying its type
+         * The event is registered without specifying its type.
          */
         REGISTER,
         /**
-         * The event is registered with an explicit type
+         * The event is registered with an explicit type.
          */
         EXPLICIT_REGISTER,
     }

@@ -5,7 +5,7 @@ import net.lenni0451.lambdaevents.AHandler;
 import net.lenni0451.lambdaevents.IExceptionHandler;
 
 /**
- * An {@link IExceptionHandler} which rethrows the exception
+ * An {@link IExceptionHandler} which rethrows the exception.
  */
 public class ThrowingExceptionHandler implements IExceptionHandler {
 
