@@ -31,7 +31,7 @@ dependencies {
     testImplementation "org.ow2.asm:asm:9.7"
     testImplementation reflect
 
-    jmh "org.openjdk.jmh:jmh-core:1.36"
+    jmh "org.openjdk.jmh:jmh-core:1.37"
     jmh "org.openjdk.jmh:jmh-generator-annprocess:1.37"
     jmhAnnotationProcessor "org.openjdk.jmh:jmh-generator-annprocess:1.37"
 }
