@@ -4,7 +4,7 @@ plugins {
     id "signing"
     id "checkstyle"
     id "me.champeau.jmh" version "0.7.3"
-    id "io.freefair.lombok" version "8.12"
+    id "io.freefair.lombok" version "8.12.1"
 }
 
 base {
