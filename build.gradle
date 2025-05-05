@@ -23,14 +23,14 @@ dependencies {
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
     compileOnly "org.jetbrains:annotations:26.0.2"
     compileOnly(annotationProcessor("org.projectlombok:lombok:1.18.38"))
-    compileOnly "net.lenni0451:Reflect:1.4.0"
+    compileOnly "net.lenni0451:Reflect:1.5.0"
 
     testImplementation(platform("org.junit:junit-bom:5.12.2"))
     testImplementation "org.junit.jupiter:junit-jupiter"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     testCompileOnly(testAnnotationProcessor("org.projectlombok:lombok:1.18.38"))
     testImplementation "org.ow2.asm:asm:9.8"
-    testImplementation "net.lenni0451:Reflect:1.4.0"
+    testImplementation "net.lenni0451:Reflect:1.5.0"
 
     jmh "org.openjdk.jmh:jmh-core:1.37"
     jmh "org.openjdk.jmh:jmh-generator-annprocess:1.37"
