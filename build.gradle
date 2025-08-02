@@ -1,134 +1,26 @@
 plugins {
     id "java-library"
-    id "maven-publish"
-    id "signing"
-    id "checkstyle"
-    id "me.champeau.jmh" version "0.7.3"
-}
-
-base {
-    java.toolchain.languageVersion = JavaLanguageVersion.of(8)
-    compileJava.options.encoding = compileTestJava.options.encoding = javadoc.options.encoding = "UTF-8"
-
-    archivesName = project.maven_name ?: rootProject.maven_name
-    group = project.maven_group ?: rootProject.maven_group
-    version = project.maven_version ?: rootProject.maven_version
-}
-
-repositories {
-    mavenCentral()
+    id "base.java"
+    id "base.checkstyle"
+    id "base.junit"
+    id "base.maven_publish"
+    id "publishing.aggregating_publisher"
+    alias libs.plugins.jmh
 }
 
 dependencies {
-    compileOnly "com.google.code.findbugs:jsr305:3.0.2"
-    compileOnly "org.jetbrains:annotations:26.0.2"
-    compileOnly(annotationProcessor("org.projectlombok:lombok:1.18.38"))
-    compileOnly "net.lenni0451:Reflect:1.5.0"
+    compileOnly libs.reflect
+    compileOnly libs.findbugs
+    compileOnly libs.jetbrainsAnnotations
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
 
-    testImplementation(platform("org.junit:junit-bom:5.13.4"))
-    testImplementation "org.junit.jupiter:junit-jupiter"
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
-    testCompileOnly(testAnnotationProcessor("org.projectlombok:lombok:1.18.38"))
-    testImplementation "org.ow2.asm:asm:9.8"
-    testImplementation "net.lenni0451:Reflect:1.5.0"
+    testImplementation libs.reflect
+    testImplementation libs.asm
+    testCompileOnly libs.lombok
+    testAnnotationProcessor libs.lombok
 
-    jmh "org.openjdk.jmh:jmh-core:1.37"
-    jmh "org.openjdk.jmh:jmh-generator-annprocess:1.37"
-    jmhAnnotationProcessor "org.openjdk.jmh:jmh-generator-annprocess:1.37"
+    jmh libs.jmh.core
+    jmh libs.jmh.generator.annprocess
+    jmhAnnotationProcessor libs.jmh.generator.annprocess
 }
-
-java {
-    withSourcesJar()
-    withJavadocJar()
-}
-
-artifacts {
-    archives javadocJar, sourcesJar
-}
-
-test {
-    useJUnitPlatform()
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
-    maxParallelForks = Runtime.runtime.availableProcessors()
-}
-
-jmh {
-    jvm = "C:/Program Files/Java/jdk-17/bin/java.exe"
-}
-
-publishing {
-    repositories {
-        maven {
-            name = "reposilite"
-            def releasesUrl = "https://maven.lenni0451.net/releases"
-            def snapshotsUrl = "https://maven.lenni0451.net/snapshots"
-            url = project.maven_version.endsWith("SNAPSHOT") ? snapshotsUrl : releasesUrl
-
-            credentials(PasswordCredentials)
-            authentication {
-                basic(BasicAuthentication)
-            }
-        }
-        maven {
-            name = "ossrh"
-            def releasesUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-            def snapshotsUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-            url = project.maven_version.endsWith("SNAPSHOT") ? snapshotsUrl : releasesUrl
-
-            credentials(PasswordCredentials)
-            authentication {
-                basic(BasicAuthentication)
-            }
-        }
-    }
-    publications {
-        maven(MavenPublication) {
-            artifactId = project.maven_name ?: rootProject.maven_name
-            groupId = rootProject.maven_group
-            version = rootProject.maven_version
-
-            from components.java
-
-            pom {
-                name = rootProject.name
-                description = rootProject.maven_description
-                url = "https://github.com/" + rootProject.github_repo
-                licenses {
-                    license {
-                        name = "MIT License"
-                        url = "https://github.com/" + rootProject.github_repo + "/blob/main/LICENSE"
-                    }
-                }
-                developers {
-                    developer {
-                        id = "Lenni0451"
-                    }
-                }
-                scm {
-                    connection = "scm:git:git://github.com/" + rootProject.github_repo + ".git"
-                    developerConnection = "scm:git:ssh://github.com/" + rootProject.github_repo + ".git"
-                    url = "github.com/" + rootProject.github_repo
-                }
-            }
-        }
-    }
-}
-
-checkstyle {
-    toolVersion = "9.3" //Latest version for Java 8: 9.3
-    configFile = rootProject.file("config/checkstyle/checkstyle.xml")
-}
-
-signing {
-    setRequired false
-    sign configurations.archives
-    sign publishing.publications.maven
-}
-
-project.tasks.withType(PublishToMavenRepository).forEach {
-    it.dependsOn(project.tasks.withType(Sign))
-}
-build.dependsOn(test)
-build.dependsOn(check)
