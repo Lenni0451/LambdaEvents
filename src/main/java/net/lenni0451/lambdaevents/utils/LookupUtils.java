@@ -16,7 +16,7 @@ import java.util.WeakHashMap;
  */
 public class LookupUtils {
 
-    private static final Map<ClassLoader, LookupGetterLoader> loaders = Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Map<ClassLoader, LookupGetterLoader> LOADERS = Collections.synchronizedMap(new WeakHashMap<>());
 
     /**
      * Get a {@link MethodHandles.Lookup} in the given {@link ClassLoader}.<br>
@@ -28,7 +28,7 @@ public class LookupUtils {
     @Nonnull
     @SneakyThrows
     public static MethodHandles.Lookup getIn(final ClassLoader classLoader) {
-        LookupGetterLoader loader = loaders.computeIfAbsent(classLoader, LookupGetterLoader::new);
+        LookupGetterLoader loader = LOADERS.computeIfAbsent(classLoader, LookupGetterLoader::new);
         Class<?> lookupGetter;
         if (!loader.isDefined(LookupGetter.class.getName())) {
             //If the class is not defined we need to get its bytes and define it

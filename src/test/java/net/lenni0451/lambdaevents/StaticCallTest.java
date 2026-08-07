@@ -67,11 +67,11 @@ public class StaticCallTest {
 
 
     @EventHandler(events = String.class)
-    public static final Runnable virtualRunnable = () -> calledVirtualRunnable = true;
+    public static final Runnable VIRTUAL_RUNNABLE = () -> calledVirtualRunnable = true;
     @EventHandler
-    public static final Consumer<String> directConsumer = event -> calledDirectConsumer = true;
+    public static final Consumer<String> DIRECT_CONSUMER = event -> calledDirectConsumer = true;
     @EventHandler(events = String.class)
-    public static final Consumer<Object> virtualConsumer = event -> calledVirtualConsumer = true;
+    public static final Consumer<Object> VIRTUAL_CONSUMER = event -> calledVirtualConsumer = true;
 
     @EventHandler
     public static void directMethod(final String event) {
